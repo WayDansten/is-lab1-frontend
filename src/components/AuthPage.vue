@@ -35,11 +35,16 @@ function showMainPanel() {
       <div id="mainPanel" v-if="isMainPanelEnabled">
         <div id="mainPanelContents">
           <h3 id="authHeader">Sign in or register</h3>
-          <TextField description="Username" />
-          <PasswordField description="Password" />
+          <TextField description="Username"></TextField>
+          <PasswordField description="Password"></PasswordField>
           <div id="buttonPanel">
-            <Button id="loginButton" label="Sign in" @click="login" severity="secondary" />
-            <Button id="registerButton" label="Register" @click="register" severity="secondary" />
+            <Button id="loginButton" label="Sign in" @click="login" severity="secondary"></Button>
+            <Button
+              id="registerButton"
+              label="Register"
+              @click="register"
+              severity="secondary"
+            ></Button>
           </div>
         </div>
       </div>
