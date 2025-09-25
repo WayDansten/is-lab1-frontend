@@ -4,74 +4,7 @@ import { DataTable, Column, Button, InputGroup } from 'primevue'
 import { ref } from 'vue'
 import TextField from './basic_components/TextField.vue'
 
-const labWorks = ref([
-  {
-    id: 'id',
-    name: 'name',
-    discipline: 'it',
-    author_id: 'author',
-    difficulty: 'hard',
-    creationDate: '0809',
-    minimalPoint: '1',
-    averagePoint: '14',
-    coordinates: '(0;1)',
-  },
-  {
-    id: 'id',
-    name: 'name',
-    discipline: 'it',
-    author_id: 'author',
-    difficulty: 'hard',
-    creationDate: '0809',
-    minimalPoint: '1',
-    averagePoint: '14',
-    coordinates: '(0;1)',
-  },
-  {
-    id: 'id',
-    name: 'name',
-    discipline: 'it',
-    author_id: 'author',
-    difficulty: 'hard',
-    creationDate: '0809',
-    minimalPoint: '1',
-    averagePoint: '14',
-    coordinates: '(0;1)',
-  },
-  {
-    id: 'id',
-    name: 'name',
-    discipline: 'it',
-    author_id: 'author',
-    difficulty: 'hard',
-    creationDate: '0809',
-    minimalPoint: '1',
-    averagePoint: '14',
-    coordinates: '(0;1)',
-  },
-  {
-    id: 'id',
-    name: 'name',
-    discipline: 'it',
-    author_id: 'author',
-    difficulty: 'hard',
-    creationDate: '0809',
-    minimalPoint: '1',
-    averagePoint: '14',
-    coordinates: '(0;1)',
-  },
-  {
-    id: 'id',
-    name: 'name',
-    discipline: 'it',
-    author_id: 'author',
-    difficulty: 'hard',
-    creationDate: '0809',
-    minimalPoint: '1',
-    averagePoint: '14',
-    coordinates: '(0;1)',
-  },
-])
+const labWorks = ref([])
 
 const activePanel = ref('info')
 
@@ -368,6 +301,10 @@ function logOut() {
 :deep(#dataTable .p-datatable-tbody > tr),
 :deep(.p-paginator) {
   background-color: rgba(0, 0, 0, 0.377);
+}
+
+:deep(.p-inputtext) {
+  background-color: rgba(0, 0, 0, 0.377) !important;
 }
 
 /* Animations */
