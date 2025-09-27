@@ -1,79 +1,19 @@
 <script setup>
 import router from '@/router/router'
-import { DataTable, Column, Button, InputGroup } from 'primevue'
+import { DataTable, Column, Button, InputGroup, IftaLabel, InputText, InputNumber } from 'primevue'
 import { ref } from 'vue'
-import TextField from './basic_components/TextField.vue'
 
-const labWorks = ref([
-  {
-    id: 'id',
-    name: 'name',
-    discipline: 'it',
-    author_id: 'author',
-    difficulty: 'hard',
-    creationDate: '0809',
-    minimalPoint: '1',
-    averagePoint: '14',
-    coordinates: '(0;1)',
-  },
-  {
-    id: 'id',
-    name: 'name',
-    discipline: 'it',
-    author_id: 'author',
-    difficulty: 'hard',
-    creationDate: '0809',
-    minimalPoint: '1',
-    averagePoint: '14',
-    coordinates: '(0;1)',
-  },
-  {
-    id: 'id',
-    name: 'name',
-    discipline: 'it',
-    author_id: 'author',
-    difficulty: 'hard',
-    creationDate: '0809',
-    minimalPoint: '1',
-    averagePoint: '14',
-    coordinates: '(0;1)',
-  },
-  {
-    id: 'id',
-    name: 'name',
-    discipline: 'it',
-    author_id: 'author',
-    difficulty: 'hard',
-    creationDate: '0809',
-    minimalPoint: '1',
-    averagePoint: '14',
-    coordinates: '(0;1)',
-  },
-  {
-    id: 'id',
-    name: 'name',
-    discipline: 'it',
-    author_id: 'author',
-    difficulty: 'hard',
-    creationDate: '0809',
-    minimalPoint: '1',
-    averagePoint: '14',
-    coordinates: '(0;1)',
-  },
-  {
-    id: 'id',
-    name: 'name',
-    discipline: 'it',
-    author_id: 'author',
-    difficulty: 'hard',
-    creationDate: '0809',
-    minimalPoint: '1',
-    averagePoint: '14',
-    coordinates: '(0;1)',
-  },
-])
+const labWorks = ref([])
 
 const activePanel = ref('info')
+
+const findByIdValue = ref()
+const findByDescriptionValue = ref()
+const deleteByIdValue = ref()
+const deleteByAuthorValue = ref()
+const modifyByIdValue = ref()
+const countByAveragePointValue = ref()
+const lowerTheDifficultyByIdValue = ref()
 
 function switchPanels(targetPanel) {
   activePanel.value = ''
@@ -119,26 +59,61 @@ function logOut() {
             <div id="subFunctionsPanelLeft">
               <InputGroup>
                 <Button label="Find by ID" size="large" severity="warn"></Button>
-                <TextField description="Lab work ID"></TextField>
+                <IftaLabel>
+                  <InputNumber
+                    id="findByIdInput"
+                    v-model="findByIdValue"
+                    variant="filled"
+                  ></InputNumber>
+                  <label for="findByIdInput">Lab work ID</label>
+                </IftaLabel>
               </InputGroup>
               <InputGroup>
                 <Button label="Find by Description" size="large" severity="warn"></Button>
-                <TextField description="Description prefix"></TextField>
+                <IftaLabel>
+                  <InputText
+                    id="findByDescriptionInput"
+                    v-model="findByDescriptionValue"
+                    variant="filled"
+                  ></InputText>
+                  <label for="findByDescriptionInput">Description prefix</label>
+                </IftaLabel>
               </InputGroup>
               <InputGroup>
                 <Button label="Delete by ID" size="large" severity="warn"></Button>
-                <TextField description="Lab work ID"></TextField>
+                <IftaLabel>
+                  <InputNumber
+                    id="deleteByIdInput"
+                    v-model="deleteByIdValue"
+                    variant="filled"
+                  ></InputNumber>
+                  <label for="deleteByIdInput">Lab work ID</label>
+                </IftaLabel>
               </InputGroup>
               <InputGroup>
                 <Button label="Delete by Author" size="large" severity="warn"></Button>
-                <TextField description="Author ID"></TextField>
+                <IftaLabel>
+                  <InputNumber
+                    id="deleteByAuthorInput"
+                    v-model="deleteByAuthorValue"
+                    variant="filled"
+                  ></InputNumber>
+                  <label for="deleteByAuthorInput">Author ID</label>
+                </IftaLabel>
               </InputGroup>
             </div>
             <div id="subFunctionsPanelRight">
               <Button label="Create new entry" size="large" severity="info"></Button>
               <InputGroup>
                 <Button label="Modify by ID" size="large" severity="info"></Button>
-                <TextField description="Lab work ID"></TextField>
+                <IftaLabel>
+                  <InputNumber
+                    id="modifyByIdInput"
+                    v-model="modifyByIdValue"
+                    variant="filled"
+                  ></InputNumber>
+                  <label for="modifyByIdInput">Lab work ID</label>
+                </IftaLabel>
               </InputGroup>
               <InputGroup>
                 <Button
@@ -146,11 +121,25 @@ function logOut() {
                   size="large"
                   severity="info"
                 ></Button>
-                <TextField description="Average point value"></TextField>
+                <IftaLabel>
+                  <InputNumber
+                    id="countByAveragePointInput"
+                    v-model="countByAveragePointValue"
+                    variant="filled"
+                  ></InputNumber>
+                  <label for="countByAveragePointInput">Average point value</label>
+                </IftaLabel>
               </InputGroup>
               <InputGroup>
                 <Button label="Lower the Difficulty" size="large" severity="info"></Button>
-                <TextField description="Lab work ID"></TextField>
+                <IftaLabel>
+                  <InputNumber
+                    id="lowerTheDifficultyByIdInput"
+                    v-model="lowerTheDifficultyByIdValue"
+                    variant="filled"
+                  ></InputNumber>
+                  <label for="lowerTheDifficultyByIdInput">Lab work ID</label>
+                </IftaLabel>
               </InputGroup>
             </div>
           </div>
