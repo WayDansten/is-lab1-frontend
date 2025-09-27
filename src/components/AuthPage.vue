@@ -1,12 +1,13 @@
 <script setup>
 import { ref } from 'vue'
-import { Button } from 'primevue'
-import PasswordField from './basic_components/PasswordField.vue'
-import TextField from './basic_components/TextField.vue'
+import { Button, IftaLabel, InputText, Password } from 'primevue'
 import router from '@/router/router'
 
 const isInitPanelEnabled = ref(true)
 const isMainPanelEnabled = ref(false)
+
+const usernameValue = ref()
+const passwordValue = ref()
 
 async function login() {
   router.push('/main')
@@ -35,8 +36,19 @@ function showMainPanel() {
       <div id="mainPanel" v-if="isMainPanelEnabled">
         <div id="mainPanelContents">
           <h3 id="authHeader">Sign in or register</h3>
-          <TextField description="Username"></TextField>
-          <PasswordField description="Password"></PasswordField>
+          <IftaLabel>
+            <InputText id="usernameInput" v-model="usernameValue" variant="filled"></InputText>
+            <label for="usernameInput">Username</label>
+          </IftaLabel>
+          <IftaLabel>
+            <Password
+              id="passwordInput"
+              v-model="passwordValue"
+              variant="filled"
+              :feedback="false"
+            ></Password>
+            <label for="passwordInput">Password</label>
+          </IftaLabel>
           <div id="buttonPanel">
             <Button id="loginButton" label="Sign in" @click="login" severity="secondary"></Button>
             <Button
@@ -53,6 +65,8 @@ function showMainPanel() {
 </template>
 
 <style scoped>
+/* Panel styles and arrangement */
+
 #bgPanel {
   background-image: url('src/assets/BG1.jpg');
   background-size: cover;
@@ -110,6 +124,14 @@ function showMainPanel() {
   text-align: center;
   color: rgb(185, 185, 185);
 }
+
+/* Specific element styles */
+
+:deep(.p-inputtext, .p-password) {
+  background-color: rgba(0, 0, 0, 0.377) !important;
+}
+
+/* Animations */
 
 .fade-scale-enter-active,
 .fade-scale-leave-active {
