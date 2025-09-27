@@ -359,6 +359,10 @@ function logOut() {
   background-color: rgba(0, 0, 0, 0.377);
 }
 
+:deep(.p-inputtext) {
+  background-color: rgba(0, 0, 0, 0.377) !important;
+}
+
 /* Animations */
 
 .fade-enter-active,
