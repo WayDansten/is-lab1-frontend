@@ -17,6 +17,7 @@ import {
   StepPanel,
   Step,
   DatePicker,
+  Message,
 } from 'primevue'
 import { ref } from 'vue'
 
@@ -34,32 +35,48 @@ const modifyByIdValue = ref()
 const countByAveragePointValue = ref()
 const lowerTheDifficultyByIdValue = ref()
 
-const formName = ref()
-const formDescription = ref()
-const formDifficulty = ref()
-const formMinimalPoint = ref()
-const formAveragePoint = ref()
+const labworkName = ref()
+const labworkDescription = ref()
+const labworkDifficulty = ref()
+const labworkMinimalPoint = ref()
+const labworkAveragePoint = ref()
 
-const formAuthorName = ref()
-const formAuthorEyeColor = ref()
-const formAuthorHairColor = ref()
-const formAuthorBirthday = ref()
-const formAuthorNationality = ref()
+const authorName = ref()
+const authorEyeColor = ref()
+const authorHairColor = ref()
+const authorBirthday = ref()
+const authorNationality = ref()
 
-const formLocationName = ref()
-const formLocationX = ref()
-const formLocationY = ref()
-const formLocationZ = ref()
+const locationName = ref()
+const locationX = ref()
+const locationY = ref()
+const locationZ = ref()
 
-const formDisciplineName = ref()
-const formDisciplinePracticeHours = ref()
+const disciplineName = ref()
+const disciplinePracticeHours = ref()
 
-const formCoordinatesX = ref()
-const formCoordinatesY = ref()
+const coordinatesX = ref()
+const coordinatesY = ref()
 
 const difficulties = ['Very easy', 'Normal', 'Insane', 'Impossible']
 const colors = ['Black', 'Blue', 'Yellow', 'Brown']
 const countries = ['United Kingdom', 'USA', 'France', 'South Korea', 'North Korea']
+
+const isLabworkNameValid = ref(true)
+const isLabworkMinimalPointValid = ref(true)
+const isLabworkAveragePointValid = ref(true)
+const isDisciplineNameValid = ref(true)
+const isDisciplinePracticeHoursValid = ref(true)
+const isCoordinatesXValid = ref(true)
+const isCoordinatesYValid = ref(true)
+const isAuthorNameValid = ref(true)
+const isAuthorHairColorValid = ref(true)
+const isAuthorBirthdayValid = ref(true)
+const isAuthorNationalityValid = ref(true)
+const isLocationNameValid = ref(true)
+const isLocationXValid = ref(true)
+const isLocationYValid = ref(true)
+const isLocationZValid = ref(true)
 
 function switchPanels(targetPanel) {
   activePanel.value = ''
@@ -74,6 +91,130 @@ function logOut() {
 
 async function createEntry() {
   console.log('Entry created')
+}
+
+const validateStage1 = (activateCallback) => {
+  isLabworkNameValid.value = true
+  isLabworkMinimalPointValid.value = true
+  isLabworkAveragePointValid.value = true
+
+  if (labworkName.value === null || labworkName.value === '') {
+    isLabworkNameValid.value = false
+  }
+
+  if (labworkMinimalPoint.value !== null && labworkMinimalPoint.value <= 0) {
+    isLabworkMinimalPointValid.value = false
+  }
+
+  if (labworkAveragePoint.value === null || labworkAveragePoint.value <= 0) {
+    isLabworkAveragePointValid.value = false
+  }
+
+  if (
+    isLabworkNameValid.value &&
+    isLabworkMinimalPointValid.value &&
+    isLabworkAveragePointValid.value
+  ) {
+    activateCallback('2')
+  }
+}
+
+const validateStage2 = (activateCallback) => {
+  isDisciplineNameValid.value = true
+  isDisciplinePracticeHoursValid.value = true
+
+  if (disciplineName.value === null || disciplineName.value === '') {
+    isDisciplineNameValid.value = false
+  }
+
+  if (disciplinePracticeHours.value === null || disciplinePracticeHours.value < 1) {
+    isDisciplinePracticeHoursValid.value = false
+  }
+
+  if (isDisciplineNameValid.value && isDisciplinePracticeHoursValid.value) {
+    activateCallback('3')
+  }
+}
+
+const validateStage3 = (activateCallback) => {
+  isCoordinatesXValid.value = true
+  isCoordinatesYValid.value = true
+
+  if (coordinatesX.value === null) {
+    isCoordinatesXValid.value = false
+  }
+
+  if (coordinatesY.value === null || coordinatesY.value < -566) {
+    isCoordinatesYValid.value = false
+  }
+
+  if (isCoordinatesXValid.value && isCoordinatesYValid.value) {
+    activateCallback('4')
+  }
+}
+
+const validateStage4 = (activateCallback) => {
+  isAuthorNameValid.value = true
+  isAuthorHairColorValid.value = true
+  isAuthorBirthdayValid.value = true
+  isAuthorNationalityValid.value = true
+
+  if (authorName.value === null || authorName.value === '') {
+    isAuthorNameValid.value = false
+  }
+
+  if (authorHairColor.value === null) {
+    isAuthorHairColorValid.value = false
+  }
+
+  if (authorBirthday.value === null) {
+    isAuthorBirthdayValid.value = false
+  }
+
+  if (authorNationality.value === null) {
+    isAuthorNationalityValid.value = false
+  }
+
+  if (
+    isAuthorNameValid.value &&
+    isAuthorHairColorValid.value &&
+    isAuthorBirthdayValid.value &&
+    isAuthorNationalityValid.value
+  ) {
+    activateCallback('5')
+  }
+}
+
+const validateStage5 = () => {
+  isLocationNameValid.value = true
+  isLocationXValid.value = true
+  isLocationYValid.value = true
+  isLocationZValid.value = true
+
+  if (locationName.value === null || locationName.value.length > 246) {
+    isLocationNameValid.value = false
+  }
+
+  if (locationX.value === null) {
+    isLocationXValid.value = false
+  }
+
+  if (locationY.value === null) {
+    isLocationYValid.value = false
+  }
+
+  if (locationZ.value === null) {
+    isLocationZValid.value = false
+  }
+
+  if (
+    isLocationNameValid.value &&
+    isLocationXValid.value &&
+    isLocationYValid.value &&
+    isLocationZValid.value
+  ) {
+    createEntry()
+  }
 }
 </script>
 
@@ -114,6 +255,7 @@ async function createEntry() {
                     id="findByIdInput"
                     v-model="findByIdValue"
                     variant="filled"
+                    :use-grouping="false"
                   ></InputNumber>
                   <label for="findByIdInput">Lab work ID</label>
                 </IftaLabel>
@@ -136,6 +278,7 @@ async function createEntry() {
                     id="deleteByIdInput"
                     v-model="deleteByIdValue"
                     variant="filled"
+                    :use-grouping="false"
                   ></InputNumber>
                   <label for="deleteByIdInput">Lab work ID</label>
                 </IftaLabel>
@@ -147,6 +290,7 @@ async function createEntry() {
                     id="deleteByAuthorInput"
                     v-model="deleteByAuthorValue"
                     variant="filled"
+                    :use-grouping="false"
                   ></InputNumber>
                   <label for="deleteByAuthorInput">Author ID</label>
                 </IftaLabel>
@@ -166,6 +310,7 @@ async function createEntry() {
                     id="modifyByIdInput"
                     v-model="modifyByIdValue"
                     variant="filled"
+                    :use-grouping="false"
                   ></InputNumber>
                   <label for="modifyByIdInput">Lab work ID</label>
                 </IftaLabel>
@@ -181,6 +326,9 @@ async function createEntry() {
                     id="countByAveragePointInput"
                     v-model="countByAveragePointValue"
                     variant="filled"
+                    :use-grouping="false"
+                    :min-fraction-digits="0"
+                    :max-fraction-digits="5"
                   ></InputNumber>
                   <label for="countByAveragePointInput">Average point value</label>
                 </IftaLabel>
@@ -192,6 +340,7 @@ async function createEntry() {
                     id="lowerTheDifficultyByIdInput"
                     v-model="lowerTheDifficultyByIdValue"
                     variant="filled"
+                    :use-grouping="false"
                   ></InputNumber>
                   <label for="lowerTheDifficultyByIdInput">Lab work ID</label>
                 </IftaLabel>
@@ -250,44 +399,71 @@ async function createEntry() {
           <StepPanels>
             <StepPanel v-slot="{ activateCallback }" value="1">
               <IftaLabel>
-                <InputText id="formNameInput" v-model="formName" variant="filled"></InputText>
+                <InputText
+                  id="formNameInput"
+                  v-model="labworkName"
+                  variant="filled"
+                  placeholder="Required"
+                ></InputText>
+                <Message v-if="!isLabworkNameValid" severity="error"
+                  >Field is required to proceed</Message
+                >
                 <label for="formNameInput">Name</label>
               </IftaLabel>
+
               <IftaLabel>
                 <Textarea
                   id="formDescriptionInput"
-                  v-model="formDescription"
+                  v-model="labworkDescription"
                   variant="filled"
                 ></Textarea>
                 <label for="formDescriptionInput">Description</label>
               </IftaLabel>
+
               <IftaLabel>
                 <Select
                   id="formDifficultyInput"
-                  v-model="formDifficulty"
+                  v-model="labworkDifficulty"
                   :options="difficulties"
                   variant="filled"
                 ></Select>
                 <label for="formDifficultyInput">Difficulty</label>
               </IftaLabel>
+
               <IftaLabel>
                 <InputNumber
                   id="formMinimalPointInput"
-                  v-model="formMinimalPoint"
+                  v-model="labworkMinimalPoint"
                   variant="filled"
+                  :use-grouping="false"
+                  :min-fraction-digits="0"
+                  :max-fraction-digits="5"
+                  placeholder="Greater than 0"
                 ></InputNumber>
+                <Message v-if="!isLabworkMinimalPointValid" severity="error"
+                  >Field needs to be greater than 0</Message
+                >
                 <label for="formMinimalPointInput">Minimal point</label>
               </IftaLabel>
+
               <IftaLabel>
                 <InputNumber
                   id="formAveragePointInput"
-                  v-model="formAveragePoint"
+                  v-model="labworkAveragePoint"
                   variant="filled"
+                  :use-grouping="false"
+                  :min-fraction-digits="0"
+                  :max-fraction-digits="5"
+                  placeholder="Required; value > 0"
                 ></InputNumber>
+                <Message v-if="!isLabworkAveragePointValid" severity="error"
+                  >Field is required to proceed and needs to be greater than 0</Message
+                >
                 <label for="formAveragePointInput">Average point</label>
               </IftaLabel>
+
               <div style="display: flex; justify-content: flex-end">
-                <Button label="Next" @click="activateCallback('2')"></Button>
+                <Button label="Next" @click="validateStage1(activateCallback)"></Button>
               </div>
             </StepPanel>
 
@@ -295,22 +471,33 @@ async function createEntry() {
               <IftaLabel>
                 <InputText
                   id="formDisciplineNameInput"
-                  v-model="formDisciplineName"
+                  v-model="disciplineName"
                   variant="filled"
+                  placeholder="Required"
                 ></InputText>
+                <Message v-if="!isDisciplineNameValid" severity="error"
+                  >Field is required to proceed</Message
+                >
                 <label for="formDisciplineNameInput">Discipline name</label>
               </IftaLabel>
+
               <IftaLabel>
                 <InputNumber
                   id="formDisciplinePracticeHoursInput"
-                  v-model="formDisciplinePracticeHours"
+                  v-model="disciplinePracticeHours"
                   variant="filled"
+                  :use-grouping="false"
+                  placeholder="Required; value >= 1"
                 ></InputNumber>
+                <Message v-if="!isDisciplinePracticeHoursValid" severity="error"
+                  >Field is required to proceed and needs to be greater than or equal to 1</Message
+                >
                 <label for="formDisciplinePracticeHoursInput">Practice hours</label>
               </IftaLabel>
+
               <div style="display: flex; justify-content: space-between">
                 <Button label="Back" @click="activateCallback('1')"></Button>
-                <Button label="Next" @click="activateCallback('3')"></Button>
+                <Button label="Next" @click="validateStage2(activateCallback)"></Button>
               </div>
             </StepPanel>
 
@@ -318,22 +505,39 @@ async function createEntry() {
               <IftaLabel>
                 <InputNumber
                   id="formCoordinatesXInput"
-                  v-model="formCoordinatesX"
+                  v-model="coordinatesX"
                   variant="filled"
+                  :use-grouping="false"
+                  :min-fraction-digits="0"
+                  :max-fraction-digits="5"
+                  placeholder="Required"
                 ></InputNumber>
+                <Message v-if="!isCoordinatesXValid" severity="error"
+                  >Field is required to proceed</Message
+                >
                 <label for="formCoordinatesXInput">X coordinate</label>
               </IftaLabel>
+
               <IftaLabel>
                 <InputNumber
                   id="formCoordinatesYInput"
-                  v-model="formCoordinatesY"
+                  v-model="coordinatesY"
                   variant="filled"
+                  :use-grouping="false"
+                  :min-fraction-digits="0"
+                  :max-fraction-digits="5"
+                  placeholder="Required; value >= -566"
                 ></InputNumber>
+                <Message v-if="!isCoordinatesYValid" severity="error"
+                  >Field is required to proceed and needs to be greater than or equal to
+                  -566</Message
+                >
                 <label for="formCoordinatesYInput">Y coordinate</label>
               </IftaLabel>
+
               <div style="display: flex; justify-content: space-between">
                 <Button label="Back" @click="activateCallback('2')"></Button>
-                <Button label="Next" @click="activateCallback('4')"></Button>
+                <Button label="Next" @click="validateStage3(activateCallback)"></Button>
               </div>
             </StepPanel>
 
@@ -341,49 +545,70 @@ async function createEntry() {
               <IftaLabel>
                 <InputText
                   id="formAuthorNameInput"
-                  v-model="formAuthorName"
+                  v-model="authorName"
                   variant="filled"
+                  placeholder="Required"
                 ></InputText>
+                <Message v-if="!isAuthorNameValid" severity="error"
+                  >Field is required to proceed</Message
+                >
                 <label for="formAuthorNameInput">Author name</label>
               </IftaLabel>
+
               <IftaLabel>
                 <Select
                   id="formAuthorEyeColorInput"
-                  v-model="formAuthorEyeColor"
+                  v-model="authorEyeColor"
                   :options="colors"
                   variant="filled"
                 ></Select>
                 <label for="formAuthorEyeColorInput">Eye color</label>
               </IftaLabel>
+
               <IftaLabel>
                 <Select
                   id="formAuthorHairColorInput"
-                  v-model="formAuthorHairColor"
+                  v-model="authorHairColor"
                   :options="colors"
                   variant="filled"
+                  placeholder="Required"
                 ></Select>
+                <Message v-if="!isAuthorHairColorValid" severity="error"
+                  >Field is required to proceed</Message
+                >
                 <label for="formAuthorHairColorInput">Hair color</label>
               </IftaLabel>
+
               <IftaLabel>
                 <DatePicker
                   id="formAuthorBirthdayInput"
-                  v-model="formAuthorBirthday"
+                  v-model="authorBirthday"
                   variant="filled"
+                  placeholder="Required"
                 ></DatePicker>
+                <Message v-if="!isAuthorBirthdayValid" severity="error"
+                  >Field is required to proceed</Message
+                >
                 <label for="formAuthorBirthdayInput">Birthday</label>
               </IftaLabel>
+
               <IftaLabel>
                 <Select
                   id="formAuthorNationalityInput"
-                  v-model="formAuthorNationality"
+                  v-model="authorNationality"
                   :options="countries"
                   variant="filled"
+                  placeholder="Required"
                 ></Select>
+                <Message v-if="!isAuthorNationalityValid" severity="error"
+                  >Field is required to proceed</Message
+                >
                 <label for="formAuthorNationalityInput">Nationality</label>
               </IftaLabel>
+
               <div style="display: flex; justify-content: space-between">
                 <Button label="Back" @click="activateCallback('3')"></Button>
-                <Button label="Next" @click="activateCallback('5')"></Button>
+                <Button label="Next" @click="validateStage4(activateCallback)"></Button>
               </div>
             </StepPanel>
 
@@ -391,38 +616,65 @@ async function createEntry() {
               <IftaLabel>
                 <InputText
                   id="formLocationNameInput"
-                  v-model="formLocationName"
+                  v-model="locationName"
                   variant="filled"
+                  placeholder="Required; 246 characters at most"
                 ></InputText>
+                <Message v-if="!isLocationNameValid" severity="error"
+                  >Field is required to proceed and can be 246 characters long at most</Message
+                >
                 <label for="formLocationNameInput">Location name</label>
               </IftaLabel>
+
               <IftaLabel>
                 <InputNumber
                   id="formLocationXInput"
-                  v-model="formLocationX"
+                  v-model="locationX"
                   variant="filled"
+                  :use-grouping="false"
+                  placeholder="Required"
                 ></InputNumber>
+                <Message v-if="!isLocationXValid" severity="error"
+                  >Field is required to proceed</Message
+                >
                 <label for="formLocationXInput">X coordinate</label>
               </IftaLabel>
+
               <IftaLabel>
                 <InputNumber
                   id="formLocationYInput"
-                  v-model="formLocationY"
+                  v-model="locationY"
                   variant="filled"
+                  :use-grouping="false"
+                  :min-fraction-digits="0"
+                  :max-fraction-digits="5"
+                  placeholder="Required"
                 ></InputNumber>
+                <Message v-if="!isLocationYValid" severity="error"
+                  >Field is required to proceed</Message
+                >
                 <label for="formLocationYInput">Y coordinate</label>
               </IftaLabel>
+
               <IftaLabel>
                 <InputNumber
                   id="formLocationZInput"
-                  v-model="formLocationZ"
+                  v-model="locationZ"
                   variant="filled"
+                  :use-grouping="false"
+                  :min-fraction-digits="0"
+                  :max-fraction-digits="5"
+                  placeholder="Required"
                 ></InputNumber>
+                <Message v-if="!isLocationZValid" severity="error"
+                  >Field is required to proceed</Message
+                >
                 <label for="formLocationZInput">Z coordinate</label>
               </IftaLabel>
+
               <div style="display: flex; justify-content: space-between">
                 <Button label="Back" @click="activateCallback('4')"></Button>
-                <Button label="Create" severity="success" @click="createEntry"></Button>
+                <Button label="Create" severity="success" @click="validateStage5"></Button>
               </div>
             </StepPanel>
           </StepPanels>
@@ -616,8 +868,9 @@ async function createEntry() {
 #createForm .p-textarea,
 #createForm .p-select,
 #createForm .p-inputtext,
-#createForm .p-inputnumber {
-  width: 100%;
+#createForm .p-inputnumber,
+#createForm .p-datepicker,
+#createForm .p-message {
   margin-bottom: 1.5rem;
 }
 
