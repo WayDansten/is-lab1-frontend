@@ -90,7 +90,42 @@ function logOut() {
 }
 
 async function createEntry() {
-  console.log('Entry created')
+  const body = {
+    name: labworkName.value,
+    description: labworkDescription.value,
+    difficulty: labworkDifficulty.value,
+    minimalPoint: labworkMinimalPoint.value,
+    averagePoint: labworkAveragePoint.value,
+    discipline: {
+      name: disciplineName.value,
+      practiceHours: disciplinePracticeHours.value,
+    },
+    coordinates: {
+      x: coordinatesX.value,
+      y: coordinatesY.value,
+    },
+    author: {
+      name: authorName.value,
+      eyeColor: authorEyeColor.value,
+      hairColor: authorHairColor.value,
+      birthday: new Date(authorBirthday.value).toISOString().slice(0, -1),
+      nationality: authorNationality.value,
+      location: {
+        name: locationName.value,
+        x: locationX.value,
+        y: locationY.value,
+        z: locationZ.value,
+      },
+    },
+  }
+
+  await fetch('http://localhost:8080/lab1/api/labwork', {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
 }
 
 const validateStage1 = (activateCallback) => {
