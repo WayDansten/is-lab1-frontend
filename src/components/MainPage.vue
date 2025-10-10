@@ -32,7 +32,6 @@ const findByIdValue = ref()
 const findByDescriptionValue = ref()
 const deleteByIdValue = ref()
 const deleteByAuthorValue = ref()
-const modifyByIdValue = ref()
 const countByAveragePointValue = ref()
 const lowerTheDifficultyByIdValue = ref()
 
@@ -360,9 +359,17 @@ async function deleteById() {
         </Transition>
         <Transition name="fade">
           <div id="functionsPanel" v-if="activePanel === 'functions'">
+            <div id="subFunctionsPanelUpper">
+              <Button
+                label="Create new entry"
+                size="small"
+                severity="info"
+                @click="isCreateDialogVisible = true"
+              ></Button>
+            </div>
             <div id="subFunctionsPanelLeft">
               <InputGroup>
-                <Button label="Find by ID" size="large" severity="warn"></Button>
+                <Button label="Find by ID" size="small" severity="warn"></Button>
                 <IftaLabel>
                   <InputNumber
                     id="findByIdInput"
@@ -374,7 +381,7 @@ async function deleteById() {
                 </IftaLabel>
               </InputGroup>
               <InputGroup>
-                <Button label="Find by Description" size="large" severity="warn"></Button>
+                <Button label="Find by Description" size="small" severity="warn"></Button>
                 <IftaLabel>
                   <InputText
                     id="findByDescriptionInput"
@@ -386,8 +393,28 @@ async function deleteById() {
               </InputGroup>
               <InputGroup>
                 <Button
+                  label="Count by greater Average Point"
+                  size="small"
+                  severity="warn"
+                ></Button>
+                <IftaLabel>
+                  <InputNumber
+                    id="countByAveragePointInput"
+                    v-model="countByAveragePointValue"
+                    variant="filled"
+                    :use-grouping="false"
+                    :min-fraction-digits="0"
+                    :max-fraction-digits="5"
+                  ></InputNumber>
+                  <label for="countByAveragePointInput">Average point value</label>
+                </IftaLabel>
+              </InputGroup>
+            </div>
+            <div id="subFunctionsPanelRight">
+              <InputGroup>
+                <Button
                   label="Delete by ID"
-                  size="large"
+                  size="small"
                   severity="warn"
                   @click="deleteById"
                 ></Button>
@@ -402,7 +429,7 @@ async function deleteById() {
                 </IftaLabel>
               </InputGroup>
               <InputGroup>
-                <Button label="Delete by Author" size="large" severity="warn"></Button>
+                <Button label="Delete by Author" size="small" severity="warn"></Button>
                 <IftaLabel>
                   <InputNumber
                     id="deleteByAuthorInput"
@@ -413,46 +440,8 @@ async function deleteById() {
                   <label for="deleteByAuthorInput">Author ID</label>
                 </IftaLabel>
               </InputGroup>
-            </div>
-            <div id="subFunctionsPanelRight">
-              <Button
-                label="Create new entry"
-                size="large"
-                severity="info"
-                @click="isCreateDialogVisible = true"
-              ></Button>
               <InputGroup>
-                <Button label="Modify by ID" size="large" severity="info"></Button>
-                <IftaLabel>
-                  <InputNumber
-                    id="modifyByIdInput"
-                    v-model="modifyByIdValue"
-                    variant="filled"
-                    :use-grouping="false"
-                  ></InputNumber>
-                  <label for="modifyByIdInput">Lab work ID</label>
-                </IftaLabel>
-              </InputGroup>
-              <InputGroup>
-                <Button
-                  label="Count by greater Average Point"
-                  size="large"
-                  severity="info"
-                ></Button>
-                <IftaLabel>
-                  <InputNumber
-                    id="countByAveragePointInput"
-                    v-model="countByAveragePointValue"
-                    variant="filled"
-                    :use-grouping="false"
-                    :min-fraction-digits="0"
-                    :max-fraction-digits="5"
-                  ></InputNumber>
-                  <label for="countByAveragePointInput">Average point value</label>
-                </IftaLabel>
-              </InputGroup>
-              <InputGroup>
-                <Button label="Lower the Difficulty" size="large" severity="info"></Button>
+                <Button label="Lower the Difficulty" size="small" severity="warn"></Button>
                 <IftaLabel>
                   <InputNumber
                     id="lowerTheDifficultyByIdInput"
@@ -862,12 +851,12 @@ async function deleteById() {
   height: 50vh;
 }
 
-#subFunctionsPanelLeft {
+#subFunctionsPanelUpper {
   position: fixed;
   top: 50%;
   left: 0;
-  width: 35vw;
-  height: 50vh;
+  width: 70vw;
+  height: 10vh;
 
   display: flex;
   justify-content: space-evenly;
@@ -875,15 +864,28 @@ async function deleteById() {
   flex-direction: column;
 }
 
-#subFunctionsPanelRight {
+#subFunctionsPanelLeft {
   position: fixed;
-  top: 50%;
-  left: 35%;
+  top: 60%;
+  left: 0;
   width: 35vw;
-  height: 50vh;
+  height: 38vh;
 
   display: flex;
-  justify-content: space-evenly;
+  justify-content: space-around;
+  align-items: center;
+  flex-direction: column;
+}
+
+#subFunctionsPanelRight {
+  position: fixed;
+  top: 60%;
+  left: 35%;
+  width: 35vw;
+  height: 38vh;
+
+  display: flex;
+  justify-content: space-around;
   align-items: center;
   flex-direction: column;
 }
@@ -943,6 +945,10 @@ async function deleteById() {
 }
 
 /* Specific element styles */
+
+#subFunctionsPanelUpper .p-button {
+  width: 85%;
+}
 
 #subFunctionsPanelLeft .p-inputgroup,
 #subFunctionsPanelRight .p-inputgroup {
