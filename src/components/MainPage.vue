@@ -18,6 +18,7 @@ import {
   Step,
   DatePicker,
   Message,
+  useToast,
 } from 'primevue'
 import { ref } from 'vue'
 
@@ -58,9 +59,9 @@ const disciplinePracticeHours = ref()
 const coordinatesX = ref()
 const coordinatesY = ref()
 
-const difficulties = ['Very easy', 'Normal', 'Insane', 'Impossible']
-const colors = ['Black', 'Blue', 'Yellow', 'Brown']
-const countries = ['United Kingdom', 'USA', 'France', 'South Korea', 'North Korea']
+const difficulties = ['VERY_EASY', 'NORMAL', 'INSANE', 'IMPOSSIBLE']
+const colors = ['BLACK', 'BLUE', 'YELLOW', 'BROWN']
+const countries = ['UNITED_KINGDOM', 'USA', 'FRANCE', 'SOUTH_KOREA', 'NORTH_KOREA']
 
 const isLabworkNameValid = ref(true)
 const isLabworkMinimalPointValid = ref(true)
@@ -78,6 +79,76 @@ const isLocationXValid = ref(true)
 const isLocationYValid = ref(true)
 const isLocationZValid = ref(true)
 
+// Toast messages
+const toast = useToast()
+
+function showToast(params) {
+  toast.add(params)
+}
+
+function bakeResponseToast(response, message) {
+  if (response.ok) {
+    showToast({
+      severity: 'success',
+      summary: 'Success!',
+      detail: message,
+      life: 5000,
+    })
+  } else {
+    showToast({
+      severity: 'error',
+      summary: 'Error!',
+      detail: message,
+      life: 5000,
+    })
+  }
+}
+
+// Functions for sending requests
+async function fetchControlRequest(url, method, body = null) {
+  const params = {
+    method: method,
+    headers: {
+      'Content-type': 'application/json',
+    },
+  }
+
+  if (body && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    params.body = JSON.stringify(body)
+  }
+
+  const response = await fetch(url, params)
+  const data = await response.json()
+
+  bakeResponseToast(response, data.message)
+}
+
+async function fetchDataRequest(url) {
+  const response = await fetch(url)
+  const data = await response.json()
+
+  return data
+}
+
+// Client data update functions
+
+const socket = new WebSocket('ws://localhost:8080/lab1/ws')
+
+socket.onopen = () => {
+  refreshData()
+}
+
+socket.onmessage = () => {
+  setTimeout(() => refreshData(), 200)
+}
+
+async function refreshData() {
+  const data = await fetchDataRequest('http://localhost:8080/lab1/api/labwork')
+  labWorks.value = data
+}
+
+// Panel/page switching functions
+
 function switchPanels(targetPanel) {
   activePanel.value = ''
   setTimeout(() => {
@@ -89,44 +160,7 @@ function logOut() {
   router.push('/auth')
 }
 
-async function createEntry() {
-  const body = {
-    name: labworkName.value,
-    description: labworkDescription.value,
-    difficulty: labworkDifficulty.value,
-    minimalPoint: labworkMinimalPoint.value,
-    averagePoint: labworkAveragePoint.value,
-    discipline: {
-      name: disciplineName.value,
-      practiceHours: disciplinePracticeHours.value,
-    },
-    coordinates: {
-      x: coordinatesX.value,
-      y: coordinatesY.value,
-    },
-    author: {
-      name: authorName.value,
-      eyeColor: authorEyeColor.value,
-      hairColor: authorHairColor.value,
-      birthday: new Date(authorBirthday.value).toISOString().slice(0, -1),
-      nationality: authorNationality.value,
-      location: {
-        name: locationName.value,
-        x: locationX.value,
-        y: locationY.value,
-        z: locationZ.value,
-      },
-    },
-  }
-
-  await fetch('http://localhost:8080/lab1/api/labwork', {
-    method: 'POST',
-    headers: {
-      'Content-type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  })
-}
+// createForm functions (validation, request submission)
 
 const validateStage1 = (activateCallback) => {
   isLabworkNameValid.value = true
@@ -251,6 +285,52 @@ const validateStage5 = () => {
     createEntry()
   }
 }
+
+async function createEntry() {
+  const body = {
+    name: labworkName.value,
+    description: labworkDescription.value,
+    difficulty: labworkDifficulty.value,
+    minimalPoint: labworkMinimalPoint.value,
+    averagePoint: labworkAveragePoint.value,
+    discipline: {
+      name: disciplineName.value,
+      practiceHours: disciplinePracticeHours.value,
+    },
+    coordinates: {
+      x: coordinatesX.value,
+      y: coordinatesY.value,
+    },
+    author: {
+      name: authorName.value,
+      eyeColor: authorEyeColor.value,
+      hairColor: authorHairColor.value,
+      birthday: new Date(authorBirthday.value).toISOString().slice(0, -1),
+      nationality: authorNationality.value,
+      location: {
+        name: locationName.value,
+        x: locationX.value,
+        y: locationY.value,
+        z: locationZ.value,
+      },
+    },
+  }
+
+  await fetchControlRequest('http://localhost:8080/lab1/api/labwork', 'POST', body)
+}
+
+// Functions for functionPanel inputs
+
+async function deleteById() {
+  if (deleteByIdValue.value === null || deleteByIdValue.value === '') {
+    //
+  }
+
+  await fetchControlRequest(
+    `http://localhost:8080/lab1/api/labwork/${deleteByIdValue.value}`,
+    'DELETE',
+  )
+}
 </script>
 
 <template>
@@ -260,8 +340,6 @@ const validateStage5 = () => {
         <DataTable id="dataTable" :value="labWorks" paginator :rows="5">
           <Column field="id" header="Id"></Column>
           <Column field="name" header="Name"></Column>
-          <Column field="discipline" header="Discipline"></Column>
-          <Column field="author_id" header="Author ID"></Column>
           <Column field="difficulty" header="Difficulty"></Column>
           <Column field="creationDate" header="Creation date"></Column>
           <Column field="minimalPoint" header="Minimal point"></Column>
@@ -307,7 +385,12 @@ const validateStage5 = () => {
                 </IftaLabel>
               </InputGroup>
               <InputGroup>
-                <Button label="Delete by ID" size="large" severity="warn"></Button>
+                <Button
+                  label="Delete by ID"
+                  size="large"
+                  severity="warn"
+                  @click="deleteById"
+                ></Button>
                 <IftaLabel>
                   <InputNumber
                     id="deleteByIdInput"
