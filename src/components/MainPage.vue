@@ -28,12 +28,11 @@ const activePanel = ref('info')
 
 const isCreateDialogVisible = ref(false)
 
-const findByIdValue = ref()
-const findByDescriptionValue = ref()
 const deleteByIdValue = ref()
 const deleteByAuthorValue = ref()
 const countByAveragePointValue = ref()
-const lowerTheDifficultyByIdValue = ref()
+const lowerDifficultyIdValue = ref()
+const lowerDifficultyDifficultyValue = ref()
 
 const labworkName = ref()
 const labworkDescription = ref()
@@ -85,8 +84,8 @@ function showToast(params) {
   toast.add(params)
 }
 
-function bakeResponseToast(response, message) {
-  if (response.ok) {
+function bakeToast(message, isSuccessful) {
+  if (isSuccessful) {
     showToast({
       severity: 'success',
       summary: 'Success!',
@@ -103,32 +102,6 @@ function bakeResponseToast(response, message) {
   }
 }
 
-// Functions for sending requests
-async function fetchControlRequest(url, method, body = null) {
-  const params = {
-    method: method,
-    headers: {
-      'Content-type': 'application/json',
-    },
-  }
-
-  if (body && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-    params.body = JSON.stringify(body)
-  }
-
-  const response = await fetch(url, params)
-  const data = await response.json()
-
-  bakeResponseToast(response, data.message)
-}
-
-async function fetchDataRequest(url) {
-  const response = await fetch(url)
-  const data = await response.json()
-
-  return data
-}
-
 // Client data update functions
 
 const socket = new WebSocket('ws://localhost:8080/lab1/ws')
@@ -142,21 +115,9 @@ socket.onmessage = () => {
 }
 
 async function refreshData() {
-  const data = await fetchDataRequest('http://localhost:8080/lab1/api/labwork')
+  const response = await fetch('http://localhost:8080/lab1/api/labwork')
+  const data = await response.json()
   labWorks.value = data
-}
-
-// Panel/page switching functions
-
-function switchPanels(targetPanel) {
-  activePanel.value = ''
-  setTimeout(() => {
-    activePanel.value = targetPanel
-  }, 600)
-}
-
-function logOut() {
-  router.push('/auth')
 }
 
 // createForm functions (validation, request submission)
@@ -166,15 +127,15 @@ const validateStage1 = (activateCallback) => {
   isLabworkMinimalPointValid.value = true
   isLabworkAveragePointValid.value = true
 
-  if (labworkName.value === null || labworkName.value === '') {
+  if (labworkName.value === undefined) {
     isLabworkNameValid.value = false
   }
 
-  if (labworkMinimalPoint.value !== null && labworkMinimalPoint.value <= 0) {
+  if (labworkMinimalPoint.value !== undefined && labworkMinimalPoint.value <= 0) {
     isLabworkMinimalPointValid.value = false
   }
 
-  if (labworkAveragePoint.value === null || labworkAveragePoint.value <= 0) {
+  if (labworkAveragePoint.value === undefined || labworkAveragePoint.value <= 0) {
     isLabworkAveragePointValid.value = false
   }
 
@@ -191,11 +152,11 @@ const validateStage2 = (activateCallback) => {
   isDisciplineNameValid.value = true
   isDisciplinePracticeHoursValid.value = true
 
-  if (disciplineName.value === null || disciplineName.value === '') {
+  if (disciplineName.value === undefined) {
     isDisciplineNameValid.value = false
   }
 
-  if (disciplinePracticeHours.value === null || disciplinePracticeHours.value < 1) {
+  if (disciplinePracticeHours.value === undefined || disciplinePracticeHours.value < 1) {
     isDisciplinePracticeHoursValid.value = false
   }
 
@@ -208,11 +169,11 @@ const validateStage3 = (activateCallback) => {
   isCoordinatesXValid.value = true
   isCoordinatesYValid.value = true
 
-  if (coordinatesX.value === null) {
+  if (coordinatesX.value === undefined) {
     isCoordinatesXValid.value = false
   }
 
-  if (coordinatesY.value === null || coordinatesY.value < -566) {
+  if (coordinatesY.value === undefined || coordinatesY.value < -566) {
     isCoordinatesYValid.value = false
   }
 
@@ -227,19 +188,19 @@ const validateStage4 = (activateCallback) => {
   isAuthorBirthdayValid.value = true
   isAuthorNationalityValid.value = true
 
-  if (authorName.value === null || authorName.value === '') {
+  if (authorName.value === undefined) {
     isAuthorNameValid.value = false
   }
 
-  if (authorHairColor.value === null) {
+  if (authorHairColor.value === undefined) {
     isAuthorHairColorValid.value = false
   }
 
-  if (authorBirthday.value === null) {
+  if (authorBirthday.value === undefined) {
     isAuthorBirthdayValid.value = false
   }
 
-  if (authorNationality.value === null) {
+  if (authorNationality.value === undefined) {
     isAuthorNationalityValid.value = false
   }
 
@@ -259,19 +220,19 @@ const validateStage5 = () => {
   isLocationYValid.value = true
   isLocationZValid.value = true
 
-  if (locationName.value === null || locationName.value.length > 246) {
+  if (locationName.value === undefined || locationName.value.length > 246) {
     isLocationNameValid.value = false
   }
 
-  if (locationX.value === null) {
+  if (locationX.value === undefined) {
     isLocationXValid.value = false
   }
 
-  if (locationY.value === null) {
+  if (locationY.value === undefined) {
     isLocationYValid.value = false
   }
 
-  if (locationZ.value === null) {
+  if (locationZ.value === undefined) {
     isLocationZValid.value = false
   }
 
@@ -315,20 +276,98 @@ async function createEntry() {
     },
   }
 
-  await fetchControlRequest('http://localhost:8080/lab1/api/labwork', 'POST', body)
+  const response = await fetch('http://localhost:8080/lab1/api/labwork', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+  const data = await response.json()
+
+  bakeToast(data.message, response.ok)
 }
 
 // Functions for functionPanel inputs
 
 async function deleteById() {
-  if (deleteByIdValue.value === null || deleteByIdValue.value === '') {
-    //
-  }
+  if (deleteByIdValue.value === undefined) {
+    bakeToast('"LabWork ID" field is empty', false)
+  } else {
+    const response = await fetch(
+      `http://localhost:8080/lab1/api/labwork/${deleteByIdValue.value}`,
+      {
+        method: 'DELETE',
+      },
+    )
+    const data = await response.json()
 
-  await fetchControlRequest(
-    `http://localhost:8080/lab1/api/labwork/${deleteByIdValue.value}`,
-    'DELETE',
-  )
+    bakeToast(data.message, response.ok)
+  }
+}
+
+async function deleteByAuthor() {
+  if (deleteByAuthorValue.value === undefined) {
+    bakeToast('"Author name" field is empty', false)
+  } else {
+    const response = await fetch('http://localhost:8080/lab1/api/labwork/author', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ string: deleteByAuthorValue.value }),
+    })
+    const data = await response.json()
+
+    bakeToast(data.message, response.ok)
+  }
+}
+
+async function countByAveragePoint() {
+  if (countByAveragePointValue.value === undefined) {
+    bakeToast('"Average point value" field is empty', false)
+  } else {
+    const params = new URLSearchParams({ averagePoint: countByAveragePointValue.value })
+    const response = await fetch(`http://localhost:8080/lab1/api/labwork/average_point?${params}`)
+    const data = await response.json()
+
+    bakeToast(data.message, response.ok)
+  }
+}
+
+async function lowerDifficulty() {
+  if (lowerDifficultyIdValue.value === undefined) {
+    bakeToast('"LabWork ID" field is empty', false)
+  } else if (lowerDifficultyDifficultyValue.value === undefined) {
+    bakeToast('"Difficulty" field is empty', false)
+  } else {
+    const response = await fetch(
+      `http://localhost:8080/lab1/api/labwork/${lowerDifficultyIdValue.value}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ difficulty: lowerDifficultyDifficultyValue.value }),
+      },
+    )
+    const data = response.json()
+
+    bakeToast(data.message, response.ok)
+  }
+}
+
+// Panel/page switching functions
+
+function switchPanels(targetPanel) {
+  activePanel.value = ''
+  setTimeout(() => {
+    activePanel.value = targetPanel
+  }, 600)
+}
+
+function logOut() {
+  router.push('/auth')
 }
 </script>
 
@@ -346,6 +385,7 @@ async function deleteById() {
           <Column field="coordinates" header="Coordinates"></Column>
         </DataTable>
       </div>
+
       <div id="bottomPanel">
         <Transition name="fade">
           <div id="infoPanel" v-if="activePanel === 'info'">
@@ -357,6 +397,7 @@ async function deleteById() {
             </div>
           </div>
         </Transition>
+
         <Transition name="fade">
           <div id="functionsPanel" v-if="activePanel === 'functions'">
             <div id="subFunctionsPanelUpper">
@@ -369,33 +410,11 @@ async function deleteById() {
             </div>
             <div id="subFunctionsPanelLeft">
               <InputGroup>
-                <Button label="Find by ID" size="small" severity="warn"></Button>
-                <IftaLabel>
-                  <InputNumber
-                    id="findByIdInput"
-                    v-model="findByIdValue"
-                    variant="filled"
-                    :use-grouping="false"
-                  ></InputNumber>
-                  <label for="findByIdInput">Lab work ID</label>
-                </IftaLabel>
-              </InputGroup>
-              <InputGroup>
-                <Button label="Find by Description" size="small" severity="warn"></Button>
-                <IftaLabel>
-                  <InputText
-                    id="findByDescriptionInput"
-                    v-model="findByDescriptionValue"
-                    variant="filled"
-                  ></InputText>
-                  <label for="findByDescriptionInput">Description prefix</label>
-                </IftaLabel>
-              </InputGroup>
-              <InputGroup>
                 <Button
                   label="Count by greater Average Point"
                   size="small"
                   severity="warn"
+                  @click="countByAveragePoint"
                 ></Button>
                 <IftaLabel>
                   <InputNumber
@@ -407,6 +426,32 @@ async function deleteById() {
                     :max-fraction-digits="5"
                   ></InputNumber>
                   <label for="countByAveragePointInput">Average point value</label>
+                </IftaLabel>
+              </InputGroup>
+              <InputGroup>
+                <Button
+                  label="Lower the Difficulty"
+                  size="small"
+                  severity="warn"
+                  @click="lowerDifficulty"
+                ></Button>
+                <IftaLabel>
+                  <InputNumber
+                    id="lowerDifficultyInput"
+                    v-model="lowerDifficultyIdValue"
+                    variant="filled"
+                    :use-grouping="false"
+                  ></InputNumber>
+                  <label for="lowerDifficultyInput">Lab work ID</label>
+                </IftaLabel>
+                <IftaLabel>
+                  <Select
+                    id="lowerDifficultySelect"
+                    v-model="lowerDifficultyDifficultyValue"
+                    variant="filled"
+                    :options="difficulties"
+                  ></Select>
+                  <label for="lowerDifficultySelect">Difficulty</label>
                 </IftaLabel>
               </InputGroup>
             </div>
@@ -429,32 +474,25 @@ async function deleteById() {
                 </IftaLabel>
               </InputGroup>
               <InputGroup>
-                <Button label="Delete by Author" size="small" severity="warn"></Button>
+                <Button
+                  label="Delete by Author"
+                  size="small"
+                  severity="warn"
+                  @click="deleteByAuthor"
+                ></Button>
                 <IftaLabel>
-                  <InputNumber
+                  <InputText
                     id="deleteByAuthorInput"
                     v-model="deleteByAuthorValue"
                     variant="filled"
-                    :use-grouping="false"
-                  ></InputNumber>
-                  <label for="deleteByAuthorInput">Author ID</label>
-                </IftaLabel>
-              </InputGroup>
-              <InputGroup>
-                <Button label="Lower the Difficulty" size="small" severity="warn"></Button>
-                <IftaLabel>
-                  <InputNumber
-                    id="lowerTheDifficultyByIdInput"
-                    v-model="lowerTheDifficultyByIdValue"
-                    variant="filled"
-                    :use-grouping="false"
-                  ></InputNumber>
-                  <label for="lowerTheDifficultyByIdInput">Lab work ID</label>
+                  ></InputText>
+                  <label for="deleteByAuthorInput">Author name</label>
                 </IftaLabel>
               </InputGroup>
             </div>
           </div>
         </Transition>
+
         <div id="controlPanel">
           <div id="subControlPanelTop">
             <Transition name="fade">
@@ -985,7 +1023,7 @@ async function deleteById() {
   background-color: rgba(0, 0, 0, 0.377);
 }
 
-:deep(.p-inputtext) {
+:deep(#functionsPanel .p-inputtext) {
   background-color: rgba(0, 0, 0, 0.377) !important;
 }
 
