@@ -523,4 +523,8 @@ async function createEntry() {
 .p-message {
   margin-bottom: 1.5rem;
 }
+
+:deep(.p-step-title) {
+  font-family: 'Tektur', sans-serif !important;
+}
 </style>

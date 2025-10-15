@@ -1,8 +1,8 @@
 <script setup>
-import { DataTable, Column, Button, InputText, Dialog, Card, Toolbar } from 'primevue'
+import { DataTable, Column, InputText, Dialog, Card } from 'primevue'
 import { ref } from 'vue'
-import { useToastNotifier } from '@/composables/useToast'
 import CreateForm from '@/components/CreateForm.vue'
+import FunctionToolbar from '@/components/FunctionToolbar.vue'
 
 const labWorks = ref([{ id: 1 }, { id: 4 }, { id: 3 }, { id: 2 }, { id: 5 }])
 const selectedLabWork = ref(null)
@@ -10,16 +10,6 @@ const selectedLabWork = ref(null)
 const filters = ref({ id: { value: null, matchMode: 'startsWith' } })
 
 const isCreateDialogVisible = ref(false)
-
-const deleteByIdValue = ref()
-const deleteByAuthorValue = ref()
-const countByAveragePointValue = ref()
-const lowerDifficultyIdValue = ref()
-const lowerDifficultyDifficultyValue = ref()
-
-const { bakeToast } = useToastNotifier()
-
-// Client data update functions
 
 const socket = new WebSocket('ws://localhost:8080/lab1/ws')
 
@@ -37,73 +27,8 @@ async function refreshData() {
   labWorks.value = data
 }
 
-// Functions for functionPanel inputs
-
-async function deleteById() {
-  if (deleteByIdValue.value === undefined) {
-    bakeToast('"LabWork ID" field is empty', false)
-  } else {
-    const response = await fetch(
-      `http://localhost:8080/lab1/api/labwork/${deleteByIdValue.value}`,
-      {
-        method: 'DELETE',
-      },
-    )
-    const data = await response.json()
-
-    bakeToast(data.message, response.ok)
-  }
-}
-
-async function deleteByAuthor() {
-  if (deleteByAuthorValue.value === undefined) {
-    bakeToast('"Author name" field is empty', false)
-  } else {
-    const response = await fetch('http://localhost:8080/lab1/api/labwork/author', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ string: deleteByAuthorValue.value }),
-    })
-    const data = await response.json()
-
-    bakeToast(data.message, response.ok)
-  }
-}
-
-async function countByAveragePoint() {
-  if (countByAveragePointValue.value === undefined) {
-    bakeToast('"Average point value" field is empty', false)
-  } else {
-    const params = new URLSearchParams({ averagePoint: countByAveragePointValue.value })
-    const response = await fetch(`http://localhost:8080/lab1/api/labwork/average_point?${params}`)
-    const data = await response.json()
-
-    bakeToast(data.message, response.ok)
-  }
-}
-
-async function lowerDifficulty() {
-  if (lowerDifficultyIdValue.value === undefined) {
-    bakeToast('"LabWork ID" field is empty', false)
-  } else if (lowerDifficultyDifficultyValue.value === undefined) {
-    bakeToast('"Difficulty" field is empty', false)
-  } else {
-    const response = await fetch(
-      `http://localhost:8080/lab1/api/labwork/${lowerDifficultyIdValue.value}`,
-      {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ difficulty: lowerDifficultyDifficultyValue.value }),
-      },
-    )
-    const data = response.json()
-
-    bakeToast(data.message, response.ok)
-  }
+function toggleCreateForm() {
+  isCreateDialogVisible.value = !isCreateDialogVisible.value
 }
 </script>
 
@@ -111,35 +36,7 @@ async function lowerDifficulty() {
   <div id="bgPanel">
     <div id="blurPanel">
       <div id="toolbarPanel">
-        <Toolbar>
-          <template #center>
-            <Button
-              label="Create new entry"
-              size="small"
-              severity="info"
-              @click="isCreateDialogVisible = true"
-            ></Button>
-            <Button
-              label="Count by greater Average Point"
-              size="small"
-              severity="warn"
-              @click="countByAveragePoint"
-            ></Button>
-            <Button
-              label="Lower the Difficulty"
-              size="small"
-              severity="warn"
-              @click="lowerDifficulty"
-            ></Button>
-            <Button label="Delete by ID" size="small" severity="warn" @click="deleteById"></Button>
-            <Button
-              label="Delete by Author"
-              size="small"
-              severity="warn"
-              @click="deleteByAuthor"
-            ></Button>
-          </template>
-        </Toolbar>
+        <FunctionToolbar @create-entry="toggleCreateForm" />
       </div>
       <div id="tablePanel">
         <DataTable
@@ -171,7 +68,6 @@ async function lowerDifficulty() {
           <Column field="coordinates" header="Coordinates" sortable></Column>
         </DataTable>
       </div>
-
       <div id="bottomPanel">
         <Card id="descriptionPanel" class="data-card">
           <template #title>Lab work description</template>
@@ -206,7 +102,7 @@ async function lowerDifficulty() {
         modal
         header="Create a new lab work entry"
       >
-        <CreateForm></CreateForm>
+        <CreateForm />
       </Dialog>
     </div>
   </div>
@@ -272,16 +168,6 @@ async function lowerDifficulty() {
 
 /* Specific element styles */
 
-#toolbarPanel .p-toolbar {
-  background-color: rgba(0, 0, 0, 0.35);
-  border: none;
-  border-radius: 0;
-}
-
-#toolbarPanel .p-button {
-  margin: 0.25rem;
-}
-
 #tablePanel :deep(.p-datatable .p-datatable-paginator-bottom) {
   border: none;
 }
@@ -300,18 +186,5 @@ async function lowerDifficulty() {
 :deep(#dataTable .p-datatable-tbody > tr),
 :deep(.p-paginator) {
   background-color: rgba(0, 0, 0, 0.35);
-}
-
-#createForm .p-textarea,
-#createForm .p-select,
-#createForm .p-inputtext,
-#createForm .p-inputnumber,
-#createForm .p-datepicker,
-#createForm .p-message {
-  margin-bottom: 1.5rem;
-}
-
-:deep(.p-step-title) {
-  font-family: 'Tektur', sans-serif !important;
 }
 </style>
