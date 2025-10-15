@@ -1,10 +1,10 @@
 <script setup>
-import { Toast } from 'primevue'
+import Toast from 'primevue/toast'
 </script>
 
 <template>
-  <RouterView />
   <Toast />
+  <RouterView />
 </template>
 
 <style>
