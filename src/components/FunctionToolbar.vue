@@ -54,7 +54,7 @@ async function deleteById() {
     )
     const data = await response.json()
 
-    bakeToast(data.message, response.ok)
+    bakeToast(data.string, response.ok)
   }
 }
 
@@ -71,7 +71,7 @@ async function deleteByAuthor() {
     })
     const data = await response.json()
 
-    bakeToast(data.message, response.ok)
+    bakeToast(data.string, response.ok)
   }
 }
 
@@ -83,7 +83,7 @@ async function countByAveragePoint() {
     const response = await fetch(`http://localhost:8080/lab1/api/labwork/average_point?${params}`)
     const data = await response.json()
 
-    bakeToast(data.message, response.ok)
+    bakeToast(data.string, response.ok)
   }
 }
 
@@ -105,7 +105,7 @@ async function lowerDifficulty() {
     )
     const data = response.json()
 
-    bakeToast(data.message, response.ok)
+    bakeToast(data.string, response.ok)
   }
 }
 </script>
@@ -195,6 +195,6 @@ async function lowerDifficulty() {
 }
 
 .p-toolbar .p-button {
-  margin: 0.25rem;
+  margin: 0.5rem;
 }
 </style>

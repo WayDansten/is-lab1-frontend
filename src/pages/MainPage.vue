@@ -1,15 +1,67 @@
 <script setup>
-import { DataTable, Column, InputText, Dialog, Card } from 'primevue'
+import { DataTable, Column, InputText, InputNumber, Select, Dialog, Card } from 'primevue'
 import { ref } from 'vue'
 import CreateForm from '@/components/CreateForm.vue'
 import FunctionToolbar from '@/components/FunctionToolbar.vue'
+import { useToastNotifier } from '@/composables/useToast'
 
-const labWorks = ref([{ id: 1 }, { id: 4 }, { id: 3 }, { id: 2 }, { id: 5 }])
+// Toasts
+
+const { bakeToast } = useToastNotifier()
+
+// DataTable binds
+
+const difficulties = ['VERY_EASY', 'NORMAL', 'INSANE', 'IMPOSSIBLE']
+
+const labWorks = ref([])
 const selectedLabWork = ref(null)
 
 const filters = ref({ id: { value: null, matchMode: 'startsWith' } })
 
+const editingRows = ref([])
+
+const onRowEditSave = async (event) => {
+  let { newData, index } = event
+  labWorks.value[index] = newData
+
+  const response = await fetch('http://localhost:8080/lab1/api/labwork', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(newData),
+  })
+  const data = await response.json()
+
+  bakeToast(data.string, response.ok)
+}
+
+const columns = ref([
+  { field: 'id', header: 'ID', editable: false },
+  { field: 'name', header: 'Name', editable: true },
+  { field: 'difficulty', header: 'Difficulty', editable: true },
+  { field: 'creationDate', header: 'Creation date', editable: false },
+  {
+    field: 'minimalPoint',
+    header: 'Minimal point',
+    editable: true,
+  },
+  {
+    field: 'averagePoint',
+    header: 'Average point',
+    editable: true,
+  },
+])
+
+// CreateForm toggle
+
 const isCreateDialogVisible = ref(false)
+
+function toggleCreateForm() {
+  isCreateDialogVisible.value = !isCreateDialogVisible.value
+}
+
+// WebSocket functions
 
 const socket = new WebSocket('ws://localhost:8080/lab1/ws')
 
@@ -26,10 +78,6 @@ async function refreshData() {
   const data = await response.json()
   labWorks.value = data
 }
-
-function toggleCreateForm() {
-  isCreateDialogVisible.value = !isCreateDialogVisible.value
-}
 </script>
 
 <template>
@@ -41,59 +89,90 @@ function toggleCreateForm() {
       <div id="tablePanel">
         <DataTable
           id="dataTable"
-          removable-sort
           :value="labWorks"
           paginator
           :rows="5"
+          removable-sort
           v-model:filters="filters"
           filter-display="menu"
           selection-mode="single"
           v-model:selection="selectedLabWork"
+          edit-mode="row"
+          v-model:editing-rows="editingRows"
+          @row-edit-save="onRowEditSave"
         >
           <template #empty>No entries found. Create one!</template>
-          <Column field="id" header="Id" sortable>
-            <template #filter="{ filterModel, filterCallback }">
-              <InputText
-                v-model="filterModel.value"
-                @input="filterCallback"
-                placeholder="Search by ID"
-              ></InputText>
+          <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header">
+            <template #editor="{ data, field }" v-if="col.editable">
+              <template v-if="field === 'name'">
+                <InputText v-model="data[field]" variant="filled"></InputText>
+              </template>
+              <template v-else-if="field === 'difficulty'">
+                <Select v-model="data[field]" :options="difficulties" variant="filled"></Select>
+              </template>
+              <template v-else>
+                <InputNumber
+                  v-model="data[field]"
+                  :use-grouping="false"
+                  :min-fraction-digits="0"
+                  :max-fraction-digits="5"
+                  variant="filled"
+                ></InputNumber>
+              </template>
             </template>
           </Column>
-          <Column field="name" header="Name" sortable></Column>
-          <Column field="difficulty" header="Difficulty" sortable></Column>
-          <Column field="creationDate" header="Creation date" sortable></Column>
-          <Column field="minimalPoint" header="Minimal point" sortable></Column>
-          <Column field="averagePoint" header="Average point" sortable></Column>
-          <Column field="coordinates" header="Coordinates" sortable></Column>
+          <Column :row-editor="true"></Column>
         </DataTable>
       </div>
       <div id="bottomPanel">
         <Card id="descriptionPanel" class="data-card">
           <template #title>Lab work description</template>
-          <template #content>{{
-            selectedLabWork === null
-              ? 'Select a lab work to read its description'
-              : selectedLabWork.description
-          }}</template>
+          <template #content>
+            <template v-if="selectedLabWork">
+              <div class="card-details">{{ selectedLabWork.description }}</div>
+            </template>
+            <template v-else>Select a lab work to read its description</template>
+          </template>
         </Card>
         <Card id="detailPanel" class="data-card">
           <template #title>Lab work details</template>
           <template #content>
-            {{
-              selectedLabWork === null
-                ? 'Select a lab work to view its details'
-                : selectedLabWork.description
-            }}</template
-          >
+            <template v-if="selectedLabWork">
+              <div class="card-details">
+                <strong>Coordinates: </strong>
+                <span>X: {{ selectedLabWork.coordinates?.x }}</span>
+                <span>Y: {{ selectedLabWork.coordinates?.y }}</span>
+              </div>
+              <div class="card-details">
+                <strong>Discipline: </strong>
+                <span>Name: {{ selectedLabWork.discipline?.name }}</span>
+                <span>Practice hours: {{ selectedLabWork.discipline?.practiceHours }}</span>
+              </div>
+            </template>
+            <template v-else> Select a lab work to read about its details </template>
+          </template>
         </Card>
         <Card id="authorPanel" class="data-card">
           <template #title>About the author</template>
-          <template #content>{{
-            selectedLabWork === null
-              ? 'Select a lab work to read about its author'
-              : selectedLabWork.author
-          }}</template>
+          <template #content>
+            <template v-if="selectedLabWork">
+              <div class="card-details">
+                <span>Name: {{ selectedLabWork.author?.name }}</span>
+                <span>Eye color: {{ selectedLabWork.author?.eyeColor }}</span>
+                <span>Hair color: {{ selectedLabWork.author?.hairColor }}</span>
+                <span>Nationality: {{ selectedLabWork.author?.nationality }}</span>
+                <span>Birthday: {{ selectedLabWork.author?.birthday }}</span>
+              </div>
+              <div class="card-details">
+                <strong>Location</strong>
+                <span>Name: {{ selectedLabWork.author?.location.name }}</span>
+                <span>X: {{ selectedLabWork.author?.location.x }}</span>
+                <span>Y: {{ selectedLabWork.author?.location.y }}</span>
+                <span>Z: {{ selectedLabWork.author?.location.z }}</span>
+              </div>
+            </template>
+            <template v-else> Select a lab work to read about its author </template>
+          </template>
         </Card>
       </div>
       <Dialog
@@ -166,7 +245,14 @@ function toggleCreateForm() {
   box-shadow: none;
 }
 
-/* Specific element styles */
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.25rem;
+
+  font-family: 'Roboto', sans-serif;
+}
 
 #tablePanel :deep(.p-datatable .p-datatable-paginator-bottom) {
   border: none;

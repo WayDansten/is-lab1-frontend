@@ -225,7 +225,7 @@ async function createEntry() {
   })
   const data = await response.json()
 
-  bakeToast(data.message, response.ok)
+  bakeToast(data.string, response.ok)
 }
 </script>
 
