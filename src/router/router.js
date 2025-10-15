@@ -1,4 +1,3 @@
-import AuthPage from '@/components/AuthPage.vue'
 import MainPage from '@/components/MainPage.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
@@ -9,13 +8,8 @@ const routes = [
     component: MainPage,
   },
   {
-    path: '/auth',
-    name: 'Auth',
-    component: AuthPage,
-  },
-  {
     path: '/',
-    redirect: '/auth',
+    redirect: '/main',
   },
 ]
 

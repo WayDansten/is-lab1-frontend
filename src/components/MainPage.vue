@@ -1,10 +1,8 @@
 <script setup>
-import router from '@/router/router'
 import {
   DataTable,
   Column,
   Button,
-  InputGroup,
   IftaLabel,
   InputText,
   InputNumber,
@@ -18,13 +16,17 @@ import {
   Step,
   DatePicker,
   Message,
+  Card,
   useToast,
+  Toolbar,
+  Popover,
 } from 'primevue'
 import { ref } from 'vue'
 
-const labWorks = ref([])
+const labWorks = ref([{ id: 1 }, { id: 4 }, { id: 3 }, { id: 2 }, { id: 5 }])
+const selectedLabWork = ref(null)
 
-const activePanel = ref('info')
+const filters = ref({ id: { value: null, matchMode: 'startsWith' } })
 
 const isCreateDialogVisible = ref(false)
 
@@ -356,176 +358,100 @@ async function lowerDifficulty() {
     bakeToast(data.message, response.ok)
   }
 }
-
-// Panel/page switching functions
-
-function switchPanels(targetPanel) {
-  activePanel.value = ''
-  setTimeout(() => {
-    activePanel.value = targetPanel
-  }, 600)
-}
-
-function logOut() {
-  router.push('/auth')
-}
 </script>
 
 <template>
   <div id="bgPanel">
     <div id="blurPanel">
+      <div id="toolbarPanel">
+        <Toolbar>
+          <template #center>
+            <Button
+              label="Create new entry"
+              size="small"
+              severity="info"
+              @click="isCreateDialogVisible = true"
+            ></Button>
+            <Button
+              label="Count by greater Average Point"
+              size="small"
+              severity="warn"
+              @click="countByAveragePoint"
+            ></Button>
+            <Button
+              label="Lower the Difficulty"
+              size="small"
+              severity="warn"
+              @click="lowerDifficulty"
+            ></Button>
+            <Button label="Delete by ID" size="small" severity="warn" @click="deleteById"></Button>
+            <Button
+              label="Delete by Author"
+              size="small"
+              severity="warn"
+              @click="deleteByAuthor"
+            ></Button>
+          </template>
+        </Toolbar>
+      </div>
       <div id="tablePanel">
-        <DataTable id="dataTable" :value="labWorks" paginator :rows="5">
-          <Column field="id" header="Id"></Column>
-          <Column field="name" header="Name"></Column>
-          <Column field="difficulty" header="Difficulty"></Column>
-          <Column field="creationDate" header="Creation date"></Column>
-          <Column field="minimalPoint" header="Minimal point"></Column>
-          <Column field="averagePoint" header="Average point"></Column>
-          <Column field="coordinates" header="Coordinates"></Column>
+        <DataTable
+          id="dataTable"
+          removable-sort
+          :value="labWorks"
+          paginator
+          :rows="5"
+          v-model:filters="filters"
+          filter-display="menu"
+          selection-mode="single"
+          v-model:selection="selectedLabWork"
+        >
+          <template #empty>No entries found. Create one!</template>
+          <Column field="id" header="Id" sortable>
+            <template #filter="{ filterModel, filterCallback }">
+              <InputText
+                v-model="filterModel.value"
+                @input="filterCallback"
+                placeholder="Search by ID"
+              ></InputText>
+            </template>
+          </Column>
+          <Column field="name" header="Name" sortable></Column>
+          <Column field="difficulty" header="Difficulty" sortable></Column>
+          <Column field="creationDate" header="Creation date" sortable></Column>
+          <Column field="minimalPoint" header="Minimal point" sortable></Column>
+          <Column field="averagePoint" header="Average point" sortable></Column>
+          <Column field="coordinates" header="Coordinates" sortable></Column>
         </DataTable>
       </div>
 
       <div id="bottomPanel">
-        <Transition name="fade">
-          <div id="infoPanel" v-if="activePanel === 'info'">
-            <div id="descriptionPanel">
-              <h3>Lab work description</h3>
-            </div>
-            <div id="authorPanel">
-              <h3>About the author</h3>
-            </div>
-          </div>
-        </Transition>
-
-        <Transition name="fade">
-          <div id="functionsPanel" v-if="activePanel === 'functions'">
-            <div id="subFunctionsPanelUpper">
-              <Button
-                label="Create new entry"
-                size="small"
-                severity="info"
-                @click="isCreateDialogVisible = true"
-              ></Button>
-            </div>
-            <div id="subFunctionsPanelLeft">
-              <InputGroup>
-                <Button
-                  label="Count by greater Average Point"
-                  size="small"
-                  severity="warn"
-                  @click="countByAveragePoint"
-                ></Button>
-                <IftaLabel>
-                  <InputNumber
-                    id="countByAveragePointInput"
-                    v-model="countByAveragePointValue"
-                    variant="filled"
-                    :use-grouping="false"
-                    :min-fraction-digits="0"
-                    :max-fraction-digits="5"
-                  ></InputNumber>
-                  <label for="countByAveragePointInput">Average point value</label>
-                </IftaLabel>
-              </InputGroup>
-              <InputGroup>
-                <Button
-                  label="Lower the Difficulty"
-                  size="small"
-                  severity="warn"
-                  @click="lowerDifficulty"
-                ></Button>
-                <IftaLabel>
-                  <InputNumber
-                    id="lowerDifficultyInput"
-                    v-model="lowerDifficultyIdValue"
-                    variant="filled"
-                    :use-grouping="false"
-                  ></InputNumber>
-                  <label for="lowerDifficultyInput">Lab work ID</label>
-                </IftaLabel>
-                <IftaLabel>
-                  <Select
-                    id="lowerDifficultySelect"
-                    v-model="lowerDifficultyDifficultyValue"
-                    variant="filled"
-                    :options="difficulties"
-                  ></Select>
-                  <label for="lowerDifficultySelect">Difficulty</label>
-                </IftaLabel>
-              </InputGroup>
-            </div>
-            <div id="subFunctionsPanelRight">
-              <InputGroup>
-                <Button
-                  label="Delete by ID"
-                  size="small"
-                  severity="warn"
-                  @click="deleteById"
-                ></Button>
-                <IftaLabel>
-                  <InputNumber
-                    id="deleteByIdInput"
-                    v-model="deleteByIdValue"
-                    variant="filled"
-                    :use-grouping="false"
-                  ></InputNumber>
-                  <label for="deleteByIdInput">Lab work ID</label>
-                </IftaLabel>
-              </InputGroup>
-              <InputGroup>
-                <Button
-                  label="Delete by Author"
-                  size="small"
-                  severity="warn"
-                  @click="deleteByAuthor"
-                ></Button>
-                <IftaLabel>
-                  <InputText
-                    id="deleteByAuthorInput"
-                    v-model="deleteByAuthorValue"
-                    variant="filled"
-                  ></InputText>
-                  <label for="deleteByAuthorInput">Author name</label>
-                </IftaLabel>
-              </InputGroup>
-            </div>
-          </div>
-        </Transition>
-
-        <div id="controlPanel">
-          <div id="subControlPanelTop">
-            <Transition name="fade">
-              <Button
-                id="showFunctionsPanelButton"
-                label="Show functions"
-                size="large"
-                severity="info"
-                v-if="activePanel === 'info'"
-                @click="switchPanels('functions')"
-              ></Button>
-            </Transition>
-            <Transition name="fade">
-              <Button
-                id="showInfoPanelButton"
-                label="Show info"
-                size="large"
-                severity="info"
-                v-if="activePanel === 'functions'"
-                @click="switchPanels('info')"
-              ></Button>
-            </Transition>
-          </div>
-          <div id="subControlPanelBottom">
-            <Button
-              id="logOutButton"
-              label="Log out"
-              size="large"
-              severity="warn"
-              @click="logOut"
-            ></Button>
-          </div>
-        </div>
+        <Card id="descriptionPanel" class="data-card">
+          <template #title>Lab work description</template>
+          <template #content>{{
+            selectedLabWork === null
+              ? 'Select a lab work to read its description'
+              : selectedLabWork.description
+          }}</template>
+        </Card>
+        <Card id="detailPanel" class="data-card">
+          <template #title>Lab work details</template>
+          <template #content>
+            {{
+              selectedLabWork === null
+                ? 'Select a lab work to view its details'
+                : selectedLabWork.description
+            }}</template
+          >
+        </Card>
+        <Card id="authorPanel" class="data-card">
+          <template #title>About the author</template>
+          <template #content>{{
+            selectedLabWork === null
+              ? 'Select a lab work to read about its author'
+              : selectedLabWork.author
+          }}</template>
+        </Card>
       </div>
       <Dialog
         id="createForm"
@@ -853,154 +779,50 @@ function logOut() {
   width: 100vw;
   height: 100vh;
 
-  background: rgba(0, 0, 0, 0.377);
+  display: grid;
+  grid-template-rows: auto 1fr 1fr;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+
+  background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(10px);
 }
 
+#toolbarPanel {
+  grid-row: 1;
+}
+
 #tablePanel {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 50vh;
+  grid-row: 2;
 }
 
 #bottomPanel {
-  position: fixed;
-  top: 50%;
-  left: 0;
-  width: 100vw;
-  height: 50vh;
+  grid-row: 3;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
-#infoPanel {
-  position: fixed;
-  top: 50%;
-  left: 0;
-  width: 70vw;
-  height: 50vh;
-}
-
-#functionsPanel {
-  position: fixed;
-  top: 50%;
-  left: 0;
-  width: 70vw;
-  height: 50vh;
-}
-
-#subFunctionsPanelUpper {
-  position: fixed;
-  top: 50%;
-  left: 0;
-  width: 70vw;
-  height: 10vh;
-
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-  flex-direction: column;
-}
-
-#subFunctionsPanelLeft {
-  position: fixed;
-  top: 60%;
-  left: 0;
-  width: 35vw;
-  height: 38vh;
-
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  flex-direction: column;
-}
-
-#subFunctionsPanelRight {
-  position: fixed;
-  top: 60%;
-  left: 35%;
-  width: 35vw;
-  height: 38vh;
-
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  flex-direction: column;
-}
-
-#descriptionPanel {
-  position: fixed;
-  top: 50%;
-  left: 0;
-  width: 35vw;
-  height: 50vh;
-
+.data-card {
   display: flex;
   justify-content: center;
-}
+  height: 100%;
 
-#authorPanel {
-  position: fixed;
-  top: 50%;
-  left: 35%;
-  width: 35vw;
-  height: 50vh;
-
-  display: flex;
-  justify-content: center;
-}
-
-#controlPanel {
-  position: fixed;
-  top: 50%;
-  left: 70%;
-  width: 30vw;
-  height: 50vh;
-}
-
-#subControlPanelTop {
-  position: fixed;
-  top: 50%;
-  left: 70%;
-  width: 30vw;
-  height: 25vh;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-#subControlPanelBottom {
-  position: fixed;
-  top: 75%;
-  left: 70%;
-  width: 30vw;
-  height: 25vh;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 0%;
+  box-shadow: none;
 }
 
 /* Specific element styles */
 
-#subFunctionsPanelUpper .p-button {
-  width: 85%;
+#toolbarPanel .p-toolbar {
+  background-color: rgba(0, 0, 0, 0.35);
+  border: none;
+  border-radius: 0;
 }
 
-#subFunctionsPanelLeft .p-inputgroup,
-#subFunctionsPanelRight .p-inputgroup {
-  width: 70%;
-}
-
-#subFunctionsPanelRight .p-button {
-  width: 70%;
-}
-
-#subFunctionsPanelLeft .p-inputgroup .p-button,
-#subFunctionsPanelRight .p-inputgroup .p-button {
-  width: 40%;
-  flex-shrink: 0;
+#toolbarPanel .p-button {
+  margin: 0.25rem;
 }
 
 #tablePanel :deep(.p-datatable .p-datatable-paginator-bottom) {
@@ -1020,11 +842,7 @@ function logOut() {
 :deep(#dataTable .p-datatable-thead > tr > th),
 :deep(#dataTable .p-datatable-tbody > tr),
 :deep(.p-paginator) {
-  background-color: rgba(0, 0, 0, 0.377);
-}
-
-:deep(#functionsPanel .p-inputtext) {
-  background-color: rgba(0, 0, 0, 0.377) !important;
+  background-color: rgba(0, 0, 0, 0.35);
 }
 
 #createForm .p-textarea,
@@ -1038,25 +856,5 @@ function logOut() {
 
 :deep(.p-step-title) {
   font-family: 'Tektur', sans-serif !important;
-}
-
-/* Animations */
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.6s ease;
-}
-
-.fade-enter-from {
-  opacity: 0;
-}
-
-.fade-leave-to {
-  opacity: 0;
-}
-
-.fade-enter-to,
-.fade-leave-from {
-  opacity: 1;
 }
 </style>
