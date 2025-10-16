@@ -1,9 +1,10 @@
 <script setup>
-import { DataTable, Column, InputText, InputNumber, Select, Dialog, Card } from 'primevue'
+import { Button, DataTable, Column, InputText, Textarea, InputNumber, IftaLabel, Select, Dialog, Card } from 'primevue'
 import { ref } from 'vue'
 import CreateForm from '@/components/CreateForm.vue'
 import FunctionToolbar from '@/components/FunctionToolbar.vue'
 import { useToastNotifier } from '@/composables/useToast'
+import 'primeicons/primeicons.css'
 
 // Toasts
 
@@ -13,7 +14,7 @@ const { bakeToast } = useToastNotifier()
 
 const difficulties = ['VERY_EASY', 'NORMAL', 'INSANE', 'IMPOSSIBLE']
 
-const labWorks = ref([])
+const labWorks = ref([{id: 1, description: 'Basic description'}])
 const selectedLabWork = ref(null)
 
 const filters = ref({ id: { value: null, matchMode: 'startsWith' } })
@@ -78,6 +79,24 @@ async function refreshData() {
   const data = await response.json()
   labWorks.value = data
 }
+
+// Editing panels toggles
+
+const isEditingDescription = ref(false)
+const isEditingDetails = ref(false)
+const isEditingAuthor = ref(false)
+
+const toggleEditingDescription = () => {
+  isEditingDescription.value = !isEditingDescription.value
+}
+
+const toggleEditingDetails = () => {
+  isEditingDetails.value = !isEditingDetails.value
+}
+
+const toggleEditingAuthor = () => {
+  isEditingAuthor.value = !isEditingAuthor.value
+}
 </script>
 
 <template>
@@ -126,18 +145,48 @@ async function refreshData() {
       </div>
       <div id="bottomPanel">
         <Card id="descriptionPanel" class="data-card">
-          <template #title>Lab work description</template>
+          <template #title>
+            <div class="card-title">
+              <span>Lab work description</span>
+              <Button v-if="selectedLabWork && !isEditingDescription" icon="pi pi-pencil" size="small" class="edit-button" @click="toggleEditingDescription"></Button>
+              <Button v-if="selectedLabWork && isEditingDescription" icon="pi pi-times" size="small" class="edit-button" @click="toggleEditingDescription"></Button>
+              <Button v-if="selectedLabWork && isEditingDescription" icon="pi pi-check" size="small" class="edit-button" @click="toggleEditingDescription"></Button>
+            </div>
+          </template>
           <template #content>
-            <template v-if="selectedLabWork">
+            <template v-if="isEditingDescription">
+              <Textarea variant="filled" v-model="selectedLabWork.description"></Textarea>
+            </template>
+            <template v-else-if="selectedLabWork">
               <div class="card-details">{{ selectedLabWork.description }}</div>
             </template>
             <template v-else>Select a lab work to read its description</template>
           </template>
         </Card>
         <Card id="detailPanel" class="data-card">
-          <template #title>Lab work details</template>
+          <template #title>
+            <div class="card-title">
+              <span>Lab work details</span>
+              <Button v-if="selectedLabWork && !isEditingDetails" icon="pi pi-pencil" size="small" class="edit-button" @click="toggleEditingDetails"></Button>
+              <Button v-if="selectedLabWork && isEditingDetails" icon="pi pi-times" size="small" class="edit-button" @click="toggleEditingDetails"></Button>
+              <Button v-if="selectedLabWork && isEditingDetails" icon="pi pi-check" size="small" class="edit-button" @click="toggleEditingDetails"></Button>
+            </div>
+          </template>
           <template #content>
-            <template v-if="selectedLabWork">
+            <template v-if="isEditingDetails">
+              <IftaLabel>
+                <InputNumber
+                  id="coordinatesYInput"
+                  v-model="selectedLabWork.coordinates.y"
+                  variant="filled"
+                  :use-grouping="false"
+                  :min-fraction-digits="0"
+                  :max-fraction-digits="5"
+                ></InputNumber>
+                <label for="coordinatesYInput">Y</label>
+              </IftaLabel>
+            </template>
+            <template v-else-if="selectedLabWork">
               <div class="card-details">
                 <strong>Coordinates: </strong>
                 <span>X: {{ selectedLabWork.coordinates?.x }}</span>
@@ -153,9 +202,18 @@ async function refreshData() {
           </template>
         </Card>
         <Card id="authorPanel" class="data-card">
-          <template #title>About the author</template>
+          <template #title>
+            <div class="card-title">
+              <span>About the author</span>
+              <Button v-if="selectedLabWork && !isEditingAuthor" icon="pi pi-pencil" size="small" class="edit-button" @click="toggleEditingAuthor"></Button>
+              <Button v-if="selectedLabWork && isEditingAuthor" icon="pi pi-times" size="small" class="edit-button" @click="toggleEditingAuthor"></Button>
+              <Button v-if="selectedLabWork && isEditingAuthor" icon="pi pi-check" size="small" class="edit-button" @click="toggleEditingAuthor"></Button>
+            </div></template>
           <template #content>
-            <template v-if="selectedLabWork">
+            <template v-if="isEditingAuthor">
+
+            </template>
+            <template v-else-if="selectedLabWork">
               <div class="card-details">
                 <span>Name: {{ selectedLabWork.author?.name }}</span>
                 <span>Eye color: {{ selectedLabWork.author?.eyeColor }}</span>
@@ -245,6 +303,10 @@ async function refreshData() {
   box-shadow: none;
 }
 
+.card-title > * {
+  padding: 0.25rem;
+}
+
 .card-details {
   display: flex;
   flex-direction: column;
@@ -252,6 +314,25 @@ async function refreshData() {
   padding: 0.25rem;
 
   font-family: 'Roboto', sans-serif;
+}
+
+.edit-button {
+  margin-left: auto;
+  background: transparent !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  width: 2rem;
+  height: 2rem;
+}
+
+.edit-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.edit-button:active {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: rgba(255, 255, 255, 1) !important;
 }
 
 #tablePanel :deep(.p-datatable .p-datatable-paginator-bottom) {
