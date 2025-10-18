@@ -1,6 +1,6 @@
 <script setup>
 import { Button, InputGroup, InputText, InputNumber, Toolbar, Popover } from 'primevue'
-import { defineEmits, ref } from 'vue'
+import { ref } from 'vue'
 import { useToastNotifier } from '@/composables/useToast'
 
 const emit = defineEmits(['createEntry'])
