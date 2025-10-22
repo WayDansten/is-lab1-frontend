@@ -5,6 +5,7 @@ import {
   InputText,
   InputNumber,
   Select,
+  SelectButton,
   Textarea,
   Stepper,
   StepList,
@@ -17,11 +18,25 @@ import {
 import { ref } from 'vue'
 import { useToastNotifier } from '@/composables/useToast'
 
+defineProps(['coordinates', 'disciplines', 'people', 'locations'])
+
+const emit = defineEmits(['closeForm'])
+
+const emitCloseForm = () => {
+  emit('closeForm')
+}
+
 const labworkName = ref()
 const labworkDescription = ref()
 const labworkDifficulty = ref()
 const labworkMinimalPoint = ref()
 const labworkAveragePoint = ref()
+
+const disciplineName = ref()
+const disciplinePracticeHours = ref()
+
+const coordinatesX = ref()
+const coordinatesY = ref()
 
 const authorName = ref()
 const authorEyeColor = ref()
@@ -34,15 +49,24 @@ const locationX = ref()
 const locationY = ref()
 const locationZ = ref()
 
-const disciplineName = ref()
-const disciplinePracticeHours = ref()
-
-const coordinatesX = ref()
-const coordinatesY = ref()
-
 const difficulties = ['VERY_EASY', 'NORMAL', 'INSANE', 'IMPOSSIBLE']
 const colors = ['BLACK', 'BLUE', 'YELLOW', 'BROWN']
 const countries = ['UNITED_KINGDOM', 'USA', 'FRANCE', 'SOUTH_KOREA', 'NORTH_KOREA']
+
+const modeOptions = ref([
+  { label: 'Select existing', value: 'existing' },
+  { label: 'Create new', value: 'new' },
+])
+
+const coordinatesMode = ref('existing')
+const disciplineMode = ref('existing')
+const authorMode = ref('existing')
+const locationMode = ref('existing')
+
+const selectedCoordinates = ref()
+const selectedDiscipline = ref()
+const selectedAuthor = ref()
+const selectedLocation = ref()
 
 const isLabworkNameValid = ref(true)
 const isLabworkMinimalPointValid = ref(true)
@@ -67,15 +91,23 @@ const validateStage1 = (activateCallback) => {
   isLabworkMinimalPointValid.value = true
   isLabworkAveragePointValid.value = true
 
-  if (labworkName.value === undefined) {
+  if (labworkName.value === undefined || labworkName.value === '') {
     isLabworkNameValid.value = false
   }
 
-  if (labworkMinimalPoint.value !== undefined && labworkMinimalPoint.value <= 0) {
+  if (
+    labworkMinimalPoint.value !== undefined &&
+    labworkMinimalPoint.value !== null &&
+    labworkMinimalPoint.value <= 0
+  ) {
     isLabworkMinimalPointValid.value = false
   }
 
-  if (labworkAveragePoint.value === undefined || labworkAveragePoint.value <= 0) {
+  if (
+    labworkAveragePoint.value === undefined ||
+    labworkAveragePoint.value === null ||
+    labworkAveragePoint.value <= 0
+  ) {
     isLabworkAveragePointValid.value = false
   }
 
@@ -89,14 +121,22 @@ const validateStage1 = (activateCallback) => {
 }
 
 const validateStage2 = (activateCallback) => {
+  if (selectedDiscipline.value && disciplineMode.value === 'existing') {
+    activateCallback('3')
+  }
+
   isDisciplineNameValid.value = true
   isDisciplinePracticeHoursValid.value = true
 
-  if (disciplineName.value === undefined) {
+  if (disciplineName.value === undefined || disciplineName.value === '') {
     isDisciplineNameValid.value = false
   }
 
-  if (disciplinePracticeHours.value === undefined || disciplinePracticeHours.value < 1) {
+  if (
+    disciplinePracticeHours.value === undefined ||
+    disciplinePracticeHours.value === null ||
+    disciplinePracticeHours.value < 1
+  ) {
     isDisciplinePracticeHoursValid.value = false
   }
 
@@ -106,14 +146,22 @@ const validateStage2 = (activateCallback) => {
 }
 
 const validateStage3 = (activateCallback) => {
+  if (selectedCoordinates.value && coordinatesMode.value === 'existing') {
+    activateCallback('4')
+  }
+
   isCoordinatesXValid.value = true
   isCoordinatesYValid.value = true
 
-  if (coordinatesX.value === undefined) {
+  if (coordinatesX.value === undefined || coordinatesX.value === null) {
     isCoordinatesXValid.value = false
   }
 
-  if (coordinatesY.value === undefined || coordinatesY.value < -566) {
+  if (
+    coordinatesY.value === undefined ||
+    coordinatesY.value === null ||
+    coordinatesY.value < -566
+  ) {
     isCoordinatesYValid.value = false
   }
 
@@ -123,12 +171,16 @@ const validateStage3 = (activateCallback) => {
 }
 
 const validateStage4 = (activateCallback) => {
+  if (selectedAuthor.value && authorMode.value === 'existing') {
+    activateCallback('5')
+  }
+
   isAuthorNameValid.value = true
   isAuthorHairColorValid.value = true
   isAuthorBirthdayValid.value = true
   isAuthorNationalityValid.value = true
 
-  if (authorName.value === undefined) {
+  if (authorName.value === undefined || authorName.value === '') {
     isAuthorNameValid.value = false
   }
 
@@ -155,24 +207,32 @@ const validateStage4 = (activateCallback) => {
 }
 
 const validateStage5 = () => {
+  if (selectedLocation.value && locationMode.value === 'existing') {
+    createEntry()
+  }
+
   isLocationNameValid.value = true
   isLocationXValid.value = true
   isLocationYValid.value = true
   isLocationZValid.value = true
 
-  if (locationName.value === undefined || locationName.value.length > 246) {
+  if (
+    locationName.value === undefined ||
+    locationName.value === '' ||
+    locationName.value.length > 246
+  ) {
     isLocationNameValid.value = false
   }
 
-  if (locationX.value === undefined) {
+  if (locationX.value === undefined || locationX.value === null) {
     isLocationXValid.value = false
   }
 
-  if (locationY.value === undefined) {
+  if (locationY.value === undefined || locationY.value === null) {
     isLocationYValid.value = false
   }
 
-  if (locationZ.value === undefined) {
+  if (locationZ.value === undefined || locationZ.value === null) {
     isLocationZValid.value = false
   }
 
@@ -193,27 +253,35 @@ async function createEntry() {
     difficulty: labworkDifficulty.value,
     minimalPoint: labworkMinimalPoint.value,
     averagePoint: labworkAveragePoint.value,
-    discipline: {
-      name: disciplineName.value,
-      practiceHours: disciplinePracticeHours.value,
-    },
-    coordinates: {
-      x: coordinatesX.value,
-      y: coordinatesY.value,
-    },
-    author: {
-      name: authorName.value,
-      eyeColor: authorEyeColor.value,
-      hairColor: authorHairColor.value,
-      birthday: new Date(authorBirthday.value).toISOString().slice(0, -1),
-      nationality: authorNationality.value,
-      location: {
-        name: locationName.value,
-        x: locationX.value,
-        y: locationY.value,
-        z: locationZ.value,
-      },
-    },
+    discipline: selectedDiscipline.value
+      ? selectedDiscipline.value
+      : {
+          name: disciplineName.value,
+          practiceHours: disciplinePracticeHours.value,
+        },
+    coordinates: selectedCoordinates.value
+      ? selectedCoordinates.value
+      : {
+          x: coordinatesX.value,
+          y: coordinatesY.value,
+        },
+    author: selectedAuthor.value
+      ? selectedAuthor.value
+      : {
+          name: authorName.value,
+          eyeColor: authorEyeColor.value,
+          hairColor: authorHairColor.value,
+          birthday: new Date(authorBirthday.value).toISOString().slice(0, -1),
+          nationality: authorNationality.value,
+          location: selectedLocation.value
+            ? selectedLocation.value
+            : {
+                name: locationName.value,
+                x: locationX.value,
+                y: locationY.value,
+                z: locationZ.value,
+              },
+        },
   }
 
   const response = await fetch('http://localhost:8080/lab1/api/labwork', {
@@ -226,6 +294,10 @@ async function createEntry() {
   const data = await response.json()
 
   bakeToast(data.string, response.ok)
+
+  if (response.ok) {
+    emitCloseForm()
+  }
 }
 </script>
 
@@ -310,32 +382,51 @@ async function createEntry() {
       </StepPanel>
 
       <StepPanel v-slot="{ activateCallback }" value="2">
-        <IftaLabel>
-          <InputText
-            id="formDisciplineNameInput"
-            v-model="disciplineName"
-            variant="filled"
-            placeholder="Required"
-          ></InputText>
-          <Message v-if="!isDisciplineNameValid" severity="error"
-            >Field is required to proceed</Message
-          >
-          <label for="formDisciplineNameInput">Discipline name</label>
-        </IftaLabel>
+        <SelectButton
+          v-model="disciplineMode"
+          :options="modeOptions"
+          option-label="label"
+          option-value="value"
+        ></SelectButton>
 
-        <IftaLabel>
-          <InputNumber
-            id="formDisciplinePracticeHoursInput"
-            v-model="disciplinePracticeHours"
+        <div v-if="disciplineMode === 'existing'">
+          <Select
+            v-model="selectedDiscipline"
+            :options="disciplines"
+            placeholder="Select existing discipline"
             variant="filled"
-            :use-grouping="false"
-            placeholder="Required; value >= 1"
-          ></InputNumber>
-          <Message v-if="!isDisciplinePracticeHoursValid" severity="error"
-            >Field is required to proceed and needs to be greater than or equal to 1</Message
-          >
-          <label for="formDisciplinePracticeHoursInput">Practice hours</label>
-        </IftaLabel>
+            option-label="name"
+          ></Select>
+        </div>
+
+        <div v-else>
+          <IftaLabel>
+            <InputText
+              id="formDisciplineNameInput"
+              v-model="disciplineName"
+              variant="filled"
+              placeholder="Required"
+            ></InputText>
+            <Message v-if="!isDisciplineNameValid" severity="error"
+              >Field is required to proceed</Message
+            >
+            <label for="formDisciplineNameInput">Discipline name</label>
+          </IftaLabel>
+
+          <IftaLabel>
+            <InputNumber
+              id="formDisciplinePracticeHoursInput"
+              v-model="disciplinePracticeHours"
+              variant="filled"
+              :use-grouping="false"
+              placeholder="Required; value >= 1"
+            ></InputNumber>
+            <Message v-if="!isDisciplinePracticeHoursValid" severity="error"
+              >Field is required to proceed and needs to be greater than or equal to 1</Message
+            >
+            <label for="formDisciplinePracticeHoursInput">Practice hours</label>
+          </IftaLabel>
+        </div>
 
         <div style="display: flex; justify-content: space-between">
           <Button label="Back" @click="activateCallback('1')"></Button>
@@ -344,37 +435,67 @@ async function createEntry() {
       </StepPanel>
 
       <StepPanel v-slot="{ activateCallback }" value="3">
-        <IftaLabel>
-          <InputNumber
-            id="formCoordinatesXInput"
-            v-model="coordinatesX"
-            variant="filled"
-            :use-grouping="false"
-            :min-fraction-digits="0"
-            :max-fraction-digits="5"
-            placeholder="Required"
-          ></InputNumber>
-          <Message v-if="!isCoordinatesXValid" severity="error"
-            >Field is required to proceed</Message
-          >
-          <label for="formCoordinatesXInput">X coordinate</label>
-        </IftaLabel>
+        <SelectButton
+          v-model="coordinatesMode"
+          :options="modeOptions"
+          option-label="label"
+          option-value="value"
+        ></SelectButton>
 
-        <IftaLabel>
-          <InputNumber
-            id="formCoordinatesYInput"
-            v-model="coordinatesY"
+        <div v-if="coordinatesMode === 'existing'">
+          <Select
+            v-model="selectedCoordinates"
+            :options="coordinates"
+            placeholder="Select existing coordinates"
             variant="filled"
-            :use-grouping="false"
-            :min-fraction-digits="0"
-            :max-fraction-digits="5"
-            placeholder="Required; value >= -566"
-          ></InputNumber>
-          <Message v-if="!isCoordinatesYValid" severity="error"
-            >Field is required to proceed and needs to be greater than or equal to -566</Message
           >
-          <label for="formCoordinatesYInput">Y coordinate</label>
-        </IftaLabel>
+            <template #value="slotProps">
+              <div v-if="slotProps.value">
+                X: {{ slotProps.value.x }}, Y: {{ slotProps.value.y }}
+              </div>
+              <div v-else>
+                {{ slotProps.placeholder }}
+              </div>
+            </template>
+            <template #option="slotProps">
+              <div>X: {{ slotProps.option.x }}, Y: {{ slotProps.option.y }}</div>
+            </template>
+          </Select>
+        </div>
+
+        <div v-else>
+          <IftaLabel>
+            <InputNumber
+              id="formCoordinatesXInput"
+              v-model="coordinatesX"
+              variant="filled"
+              :use-grouping="false"
+              :min-fraction-digits="0"
+              :max-fraction-digits="5"
+              placeholder="Required"
+            ></InputNumber>
+            <Message v-if="!isCoordinatesXValid" severity="error"
+              >Field is required to proceed</Message
+            >
+            <label for="formCoordinatesXInput">X coordinate</label>
+          </IftaLabel>
+
+          <IftaLabel>
+            <InputNumber
+              id="formCoordinatesYInput"
+              v-model="coordinatesY"
+              variant="filled"
+              :use-grouping="false"
+              :min-fraction-digits="0"
+              :max-fraction-digits="5"
+              placeholder="Required; value >= -566"
+            ></InputNumber>
+            <Message v-if="!isCoordinatesYValid" severity="error"
+              >Field is required to proceed and needs to be greater than or equal to -566</Message
+            >
+            <label for="formCoordinatesYInput">Y coordinate</label>
+          </IftaLabel>
+        </div>
 
         <div style="display: flex; justify-content: space-between">
           <Button label="Back" @click="activateCallback('2')"></Button>
@@ -383,127 +504,178 @@ async function createEntry() {
       </StepPanel>
 
       <StepPanel v-slot="{ activateCallback }" value="4">
-        <IftaLabel>
-          <InputText
-            id="formAuthorNameInput"
-            v-model="authorName"
-            variant="filled"
-            placeholder="Required"
-          ></InputText>
-          <Message v-if="!isAuthorNameValid" severity="error">Field is required to proceed</Message>
-          <label for="formAuthorNameInput">Author name</label>
-        </IftaLabel>
+        <SelectButton
+          v-model="authorMode"
+          :options="modeOptions"
+          option-label="label"
+          option-value="value"
+        ></SelectButton>
 
-        <IftaLabel>
+        <div v-if="authorMode === 'existing'">
           <Select
-            id="formAuthorEyeColorInput"
-            v-model="authorEyeColor"
-            :options="colors"
+            v-model="selectedAuthor"
+            :options="people"
+            placeholder="Select existing author"
             variant="filled"
-          ></Select>
-          <label for="formAuthorEyeColorInput">Eye color</label>
-        </IftaLabel>
-
-        <IftaLabel>
-          <Select
-            id="formAuthorHairColorInput"
-            v-model="authorHairColor"
-            :options="colors"
-            variant="filled"
-            placeholder="Required"
-          ></Select>
-          <Message v-if="!isAuthorHairColorValid" severity="error"
-            >Field is required to proceed</Message
+            option-label="name"
           >
-          <label for="formAuthorHairColorInput">Hair color</label>
-        </IftaLabel>
+          </Select>
+        </div>
 
-        <IftaLabel>
-          <DatePicker
-            id="formAuthorBirthdayInput"
-            v-model="authorBirthday"
-            variant="filled"
-            placeholder="Required"
-          ></DatePicker>
-          <Message v-if="!isAuthorBirthdayValid" severity="error"
-            >Field is required to proceed</Message
-          >
-          <label for="formAuthorBirthdayInput">Birthday</label>
-        </IftaLabel>
+        <div v-else>
+          <IftaLabel>
+            <InputText
+              id="formAuthorNameInput"
+              v-model="authorName"
+              variant="filled"
+              placeholder="Required"
+            ></InputText>
+            <Message v-if="!isAuthorNameValid" severity="error"
+              >Field is required to proceed</Message
+            >
+            <label for="formAuthorNameInput">Author name</label>
+          </IftaLabel>
 
-        <IftaLabel>
-          <Select
-            id="formAuthorNationalityInput"
-            v-model="authorNationality"
-            :options="countries"
-            variant="filled"
-            placeholder="Required"
-          ></Select>
-          <Message v-if="!isAuthorNationalityValid" severity="error"
-            >Field is required to proceed</Message
-          >
-          <label for="formAuthorNationalityInput">Nationality</label>
-        </IftaLabel>
+          <IftaLabel>
+            <Select
+              id="formAuthorEyeColorInput"
+              v-model="authorEyeColor"
+              :options="colors"
+              variant="filled"
+            ></Select>
+            <label for="formAuthorEyeColorInput">Eye color</label>
+          </IftaLabel>
+
+          <IftaLabel>
+            <Select
+              id="formAuthorHairColorInput"
+              v-model="authorHairColor"
+              :options="colors"
+              variant="filled"
+              placeholder="Required"
+            ></Select>
+            <Message v-if="!isAuthorHairColorValid" severity="error"
+              >Field is required to proceed</Message
+            >
+            <label for="formAuthorHairColorInput">Hair color</label>
+          </IftaLabel>
+
+          <IftaLabel>
+            <DatePicker
+              id="formAuthorBirthdayInput"
+              v-model="authorBirthday"
+              variant="filled"
+              placeholder="Required"
+            ></DatePicker>
+            <Message v-if="!isAuthorBirthdayValid" severity="error"
+              >Field is required to proceed</Message
+            >
+            <label for="formAuthorBirthdayInput">Birthday</label>
+          </IftaLabel>
+
+          <IftaLabel>
+            <Select
+              id="formAuthorNationalityInput"
+              v-model="authorNationality"
+              :options="countries"
+              variant="filled"
+              placeholder="Required"
+            ></Select>
+            <Message v-if="!isAuthorNationalityValid" severity="error"
+              >Field is required to proceed</Message
+            >
+            <label for="formAuthorNationalityInput">Nationality</label>
+          </IftaLabel>
+        </div>
 
         <div style="display: flex; justify-content: space-between">
           <Button label="Back" @click="activateCallback('3')"></Button>
-          <Button label="Next" @click="validateStage4(activateCallback)"></Button>
+          <Button
+            :label="selectedAuthor ? 'Create' : 'Next'"
+            @click="selectedAuthor ? createEntry() : validateStage4(activateCallback)"
+          ></Button>
         </div>
       </StepPanel>
 
       <StepPanel v-slot="{ activateCallback }" value="5">
-        <IftaLabel>
-          <InputText
-            id="formLocationNameInput"
-            v-model="locationName"
+        <SelectButton
+          v-model="locationMode"
+          :options="modeOptions"
+          option-label="label"
+          option-value="value"
+        ></SelectButton>
+
+        <div v-if="locationMode === 'existing'">
+          <Select
+            v-model="selectedLocation"
+            :options="locations"
+            placeholder="Select existing location"
             variant="filled"
-            placeholder="Required; 246 characters at most"
-          ></InputText>
-          <Message v-if="!isLocationNameValid" severity="error"
-            >Field is required to proceed and can be 246 characters long at most</Message
+            option-label="name"
           >
-          <label for="formLocationNameInput">Location name</label>
-        </IftaLabel>
+          </Select>
+        </div>
 
-        <IftaLabel>
-          <InputNumber
-            id="formLocationXInput"
-            v-model="locationX"
-            variant="filled"
-            :use-grouping="false"
-            placeholder="Required"
-          ></InputNumber>
-          <Message v-if="!isLocationXValid" severity="error">Field is required to proceed</Message>
-          <label for="formLocationXInput">X coordinate</label>
-        </IftaLabel>
+        <div v-else>
+          <IftaLabel>
+            <InputText
+              id="formLocationNameInput"
+              v-model="locationName"
+              variant="filled"
+              placeholder="Required; 246 characters at most"
+            ></InputText>
+            <Message v-if="!isLocationNameValid" severity="error"
+              >Field is required to proceed and can be 246 characters long at most</Message
+            >
+            <label for="formLocationNameInput">Location name</label>
+          </IftaLabel>
 
-        <IftaLabel>
-          <InputNumber
-            id="formLocationYInput"
-            v-model="locationY"
-            variant="filled"
-            :use-grouping="false"
-            :min-fraction-digits="0"
-            :max-fraction-digits="5"
-            placeholder="Required"
-          ></InputNumber>
-          <Message v-if="!isLocationYValid" severity="error">Field is required to proceed</Message>
-          <label for="formLocationYInput">Y coordinate</label>
-        </IftaLabel>
+          <IftaLabel>
+            <InputNumber
+              id="formLocationXInput"
+              v-model="locationX"
+              variant="filled"
+              :use-grouping="false"
+              placeholder="Required"
+            ></InputNumber>
+            <Message v-if="!isLocationXValid" severity="error"
+              >Field is required to proceed</Message
+            >
+            <label for="formLocationXInput">X coordinate</label>
+          </IftaLabel>
 
-        <IftaLabel>
-          <InputNumber
-            id="formLocationZInput"
-            v-model="locationZ"
-            variant="filled"
-            :use-grouping="false"
-            :min-fraction-digits="0"
-            :max-fraction-digits="5"
-            placeholder="Required"
-          ></InputNumber>
-          <Message v-if="!isLocationZValid" severity="error">Field is required to proceed</Message>
-          <label for="formLocationZInput">Z coordinate</label>
-        </IftaLabel>
+          <IftaLabel>
+            <InputNumber
+              id="formLocationYInput"
+              v-model="locationY"
+              variant="filled"
+              :use-grouping="false"
+              :min-fraction-digits="0"
+              :max-fraction-digits="5"
+              placeholder="Required"
+            ></InputNumber>
+            <Message v-if="!isLocationYValid" severity="error"
+              >Field is required to proceed</Message
+            >
+            <label for="formLocationYInput">Y coordinate</label>
+          </IftaLabel>
+
+          <IftaLabel>
+            <InputNumber
+              id="formLocationZInput"
+              v-model="locationZ"
+              variant="filled"
+              :use-grouping="false"
+              :min-fraction-digits="0"
+              :max-fraction-digits="5"
+              placeholder="Required"
+            ></InputNumber>
+            <Message v-if="!isLocationZValid" severity="error"
+              >Field is required to proceed</Message
+            >
+            <label for="formLocationZInput">Z coordinate</label>
+          </IftaLabel>
+        </div>
 
         <div style="display: flex; justify-content: space-between">
           <Button label="Back" @click="activateCallback('4')"></Button>
@@ -517,6 +689,7 @@ async function createEntry() {
 <style scoped>
 .p-textarea,
 .p-select,
+.p-selectbutton,
 .p-inputtext,
 .p-inputnumber,
 .p-datepicker,

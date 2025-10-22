@@ -5,11 +5,13 @@ import {
   Button,
   InputText,
   InputNumber,
+  InputGroup,
   Textarea,
   DatePicker,
   Select,
   IftaLabel,
   Message,
+  ScrollPanel,
 } from 'primevue'
 import { useToastNotifier } from '@/composables/useToast'
 
@@ -66,8 +68,8 @@ const updateLabWork = async () => {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      body: JSON.stringify(selectedLabWork.value),
     },
+    body: JSON.stringify(selectedLabWork.value),
   })
   const data = await response.json()
 
@@ -77,7 +79,9 @@ const updateLabWork = async () => {
 }
 
 const validateDescription = async () => {
-  toggleEditingDescription()
+  if (updateLabWork()) {
+    toggleEditingDescription()
+  }
 }
 
 const validateDetails = async () => {
@@ -179,7 +183,7 @@ const validateAuthor = () => {
     isLocationYValid &&
     isLocationZValid
   ) {
-    if (updateLabWork) {
+    if (updateLabWork()) {
       toggleEditingAuthor()
     }
   }
@@ -196,6 +200,7 @@ const validateAuthor = () => {
           icon="pi pi-pencil"
           size="small"
           class="edit-button"
+          rounded
           @click="startEditing(toggleEditingDescription)"
         ></Button>
         <Button
@@ -203,6 +208,7 @@ const validateAuthor = () => {
           icon="pi pi-times"
           size="small"
           class="edit-button"
+          rounded
           @click="rollbackEditing(toggleEditingDescription)"
         ></Button>
         <Button
@@ -210,6 +216,7 @@ const validateAuthor = () => {
           icon="pi pi-check"
           size="small"
           class="edit-button"
+          rounded
           @click="validateDescription"
         ></Button>
       </div>
@@ -233,6 +240,7 @@ const validateAuthor = () => {
           icon="pi pi-pencil"
           size="small"
           class="edit-button"
+          rounded
           @click="startEditing(toggleEditingDetails)"
         ></Button>
         <Button
@@ -240,6 +248,7 @@ const validateAuthor = () => {
           icon="pi pi-times"
           size="small"
           class="edit-button"
+          rounded
           @click="rollbackEditing(toggleEditingDetails)"
         ></Button>
         <Button
@@ -247,6 +256,7 @@ const validateAuthor = () => {
           icon="pi pi-check"
           size="small"
           class="edit-button"
+          rounded
           @click="validateDetails"
         ></Button>
       </div>
@@ -327,6 +337,7 @@ const validateAuthor = () => {
           icon="pi pi-pencil"
           size="small"
           class="edit-button"
+          rounded
           @click="startEditing(toggleEditingAuthor)"
         ></Button>
         <Button
@@ -334,6 +345,7 @@ const validateAuthor = () => {
           icon="pi pi-times"
           size="small"
           class="edit-button"
+          rounded
           @click="rollbackEditing(toggleEditingAuthor)"
         ></Button>
         <Button
@@ -341,109 +353,121 @@ const validateAuthor = () => {
           icon="pi pi-check"
           size="small"
           class="edit-button"
+          rounded
           @click="validateAuthor"
         ></Button></div
     ></template>
     <template #content>
       <template v-if="isEditingAuthor">
-        <IftaLabel>
-          <InputText
-            id="authorNameInput"
-            v-model="selectedLabWork.author.name"
-            variant="filled"
-          ></InputText>
-          <Message v-if="!isAuthorNameValid" severity="error">Field is required</Message>
-          <label for="authorNameInput">Author name</label>
-        </IftaLabel>
-        <IftaLabel v-if="selectedLabWork.author.eyeColor">
-          <Select
-            id="authorEyeColorInput"
-            v-model="selectedLabWork.author.eyeColor"
-            :options="colors"
-            variant="filled"
-          ></Select>
-          <label for="authorEyeColorInput">Eye color</label>
-        </IftaLabel>
-        <IftaLabel>
-          <Select
-            id="authorHairColorInput"
-            v-model="selectedLabWork.author.hairColor"
-            :options="colors"
-            variant="filled"
-          ></Select>
-          <Message v-if="!isAuthorHairColorValid" severity="error">Field is required</Message>
-          <label for="authorEyeColorInput">Hair color</label>
-        </IftaLabel>
-        <IftaLabel>
-          <Select
-            id="authorNationalityInput"
-            v-model="selectedLabWork.author.nationality"
-            :options="countries"
-            variant="filled"
-          ></Select>
-          <Message v-if="!isAuthorNationalityValid" severity="error">Field is required</Message>
-          <label for="authorEyeColorInput">Nationality</label>
-        </IftaLabel>
-        <IftaLabel>
-          <DatePicker
-            id="authorBirthdayInput"
-            v-model="selectedLabWork.author.birthday"
-            variant="filled"
-          />
-          <Message v-if="!isAuthorBirthdayValid" severity="error">Field is required</Message>
-          <label for="authorBirthdayInput">Birthday</label>
-        </IftaLabel>
-
-        <template v-if="selectedLabWork.author.location">
-          <strong>Location: </strong>
+        <ScrollPanel style="width: 100%; height: 250px" class="author-scrollpanel">
           <IftaLabel>
             <InputText
-              id="locationNameInput"
-              v-model="selectedLabWork.author.location.name"
+              id="authorNameInput"
+              v-model="selectedLabWork.author.name"
               variant="filled"
+              size="small"
             ></InputText>
-            <Message v-if="!isLocationNameValid" severity="error"
-              >Field is required and can be 246 characters long at most</Message
-            >
-            <label for="locationNameInput">Location name</label>
+            <Message v-if="!isAuthorNameValid" severity="error">Field is required</Message>
+            <label for="authorNameInput">Author name</label>
+          </IftaLabel>
+          <InputGroup>
+            <IftaLabel v-if="selectedLabWork.author.eyeColor">
+              <Select
+                id="authorEyeColorInput"
+                v-model="selectedLabWork.author.eyeColor"
+                :options="colors"
+                variant="filled"
+              ></Select>
+              <label for="authorEyeColorInput">Eye color</label>
+            </IftaLabel>
+            <IftaLabel>
+              <Select
+                id="authorHairColorInput"
+                v-model="selectedLabWork.author.hairColor"
+                :options="colors"
+                variant="filled"
+              ></Select>
+              <Message v-if="!isAuthorHairColorValid" severity="error">Field is required</Message>
+              <label for="authorEyeColorInput">Hair color</label>
+            </IftaLabel>
+          </InputGroup>
+          <IftaLabel>
+            <Select
+              id="authorNationalityInput"
+              v-model="selectedLabWork.author.nationality"
+              :options="countries"
+              variant="filled"
+            ></Select>
+            <Message v-if="!isAuthorNationalityValid" severity="error">Field is required</Message>
+            <label for="authorEyeColorInput">Nationality</label>
           </IftaLabel>
           <IftaLabel>
-            <InputNumber
-              id="locationXInput"
-              v-model="selectedLabWork.author.location.x"
+            <DatePicker
+              id="authorBirthdayInput"
+              v-model="selectedLabWork.author.birthday"
               variant="filled"
-              :use-grouping="false"
-              :min-fraction-digits="0"
-              :max-fraction-digits="5"
-            ></InputNumber>
-            <Message v-if="!isLocationXValid" severity="error">Field is required</Message>
-            <label for="locationXInput">X</label>
+              size="small"
+            />
+            <Message v-if="!isAuthorBirthdayValid" severity="error">Field is required</Message>
+            <label for="authorBirthdayInput">Birthday</label>
           </IftaLabel>
-          <IftaLabel>
-            <InputNumber
-              id="locationYInput"
-              v-model="selectedLabWork.author.location.y"
-              variant="filled"
-              :use-grouping="false"
-              :min-fraction-digits="0"
-              :max-fraction-digits="5"
-            ></InputNumber>
-            <Message v-if="!isLocationYValid" severity="error">Field is required</Message>
-            <label for="locationYInput">Y</label>
-          </IftaLabel>
-          <IftaLabel>
-            <InputNumber
-              id="locationZInput"
-              v-model="selectedLabWork.author.location.z"
-              variant="filled"
-              :use-grouping="false"
-              :min-fraction-digits="0"
-              :max-fraction-digits="5"
-            ></InputNumber>
-            <Message v-if="!isLocationZValid" severity="error">Field is required</Message>
-            <label for="locationZInput">Z</label>
-          </IftaLabel>
-        </template>
+
+          <template v-if="selectedLabWork.author.location">
+            <IftaLabel>
+              <InputText
+                id="locationNameInput"
+                v-model="selectedLabWork.author.location.name"
+                variant="filled"
+                size="small"
+              ></InputText>
+              <Message v-if="!isLocationNameValid" severity="error"
+                >Field is required and can be 246 characters long at most</Message
+              >
+              <label for="locationNameInput">Location name</label>
+            </IftaLabel>
+            <InputGroup>
+              <IftaLabel>
+                <InputNumber
+                  id="locationXInput"
+                  v-model="selectedLabWork.author.location.x"
+                  variant="filled"
+                  :use-grouping="false"
+                  :min-fraction-digits="0"
+                  :max-fraction-digits="5"
+                  size="small"
+                ></InputNumber>
+                <Message v-if="!isLocationXValid" severity="error">Field is required</Message>
+                <label for="locationXInput">X</label>
+              </IftaLabel>
+              <IftaLabel>
+                <InputNumber
+                  id="locationYInput"
+                  v-model="selectedLabWork.author.location.y"
+                  variant="filled"
+                  :use-grouping="false"
+                  :min-fraction-digits="0"
+                  :max-fraction-digits="5"
+                  size="small"
+                ></InputNumber>
+                <Message v-if="!isLocationYValid" severity="error">Field is required</Message>
+                <label for="locationYInput">Y</label>
+              </IftaLabel>
+              <IftaLabel>
+                <InputNumber
+                  id="locationZInput"
+                  v-model="selectedLabWork.author.location.z"
+                  variant="filled"
+                  :use-grouping="false"
+                  :min-fraction-digits="0"
+                  :max-fraction-digits="5"
+                  size="small"
+                ></InputNumber>
+                <Message v-if="!isLocationZValid" severity="error">Field is required</Message>
+                <label for="locationZInput">Z</label>
+              </IftaLabel>
+            </InputGroup>
+          </template>
+        </ScrollPanel>
       </template>
       <template v-else-if="selectedLabWork">
         <div class="card-details">
@@ -469,7 +493,8 @@ const validateAuthor = () => {
 <style scoped>
 .data-card {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   height: 100%;
 
   background: rgba(0, 0, 0, 0.35);
@@ -514,7 +539,16 @@ const validateAuthor = () => {
 .p-inputtext,
 .p-inputnumber,
 .p-datepicker,
-.p-message {
+.p-message,
+.p-inputgroup {
   margin-bottom: 1.5rem;
+}
+
+.p-textarea,
+.p-select,
+.p-inputtext,
+:deep(.p-datepicker .p-inputtext),
+:deep(.p-inputnumber .p-inputtext) {
+  background-color: rgba(0, 0, 0, 0.35) !important;
 }
 </style>

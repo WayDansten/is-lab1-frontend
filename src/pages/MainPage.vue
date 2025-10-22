@@ -1,5 +1,5 @@
 <script setup>
-import { DataTable, Column, InputText, InputNumber, Select, Dialog } from 'primevue'
+import { DataTable, Column, InputText, InputNumber, Select, Dialog, Button } from 'primevue'
 import { ref } from 'vue'
 import 'primeicons/primeicons.css'
 import { useToastNotifier } from '@/composables/useToast'
@@ -11,32 +11,61 @@ import DetailCards from '@/components/DetailCards.vue'
 
 const { bakeToast } = useToastNotifier()
 
+// Setup
+
+const functionToolbarRef = ref()
+
+// Updating data
+
+const isLabworkNameValid = ref(true)
+const isLabworkMinimalPointValid = ref(true)
+const isLabworkAveragePointValid = ref(true)
+
+const validateTableEditing = (labWork) => {
+  isLabworkNameValid.value = true
+  isLabworkMinimalPointValid.value = true
+  isLabworkAveragePointValid.value = true
+
+  if (labWork.name === undefined || labWork.name === '') {
+    isLabworkNameValid.value = false
+  }
+
+  if (labWork.minimalPoint !== undefined && labWork.minimalPoint <= 0) {
+    isLabworkMinimalPointValid.value = false
+  }
+
+  if (
+    labWork.averagePoint === undefined ||
+    labWork.averagePoint === null ||
+    labWork.averagePoint <= 0
+  ) {
+    isLabworkAveragePointValid.value = false
+  }
+
+  return (
+    isLabworkNameValid.value && isLabworkMinimalPointValid.value && isLabworkAveragePointValid.value
+  )
+}
+
+const deleteRow = (id) => {
+  functionToolbarRef.value.deleteById(id)
+}
+
 // DataTable binds
 
 const difficulties = ['VERY_EASY', 'NORMAL', 'INSANE', 'IMPOSSIBLE']
 
-const labWorks = ref([{ id: 1, description: 'Basic description', coordinates: { x: 10, y: 20 } }])
+const labWorks = ref([])
+const coordinates = ref([])
+const disciplines = ref([])
+const people = ref([])
+const locations = ref([])
+
 const selectedLabWork = ref(null)
 
 const filters = ref({ id: { value: null, matchMode: 'startsWith' } })
 
 const editingRows = ref([])
-
-const onRowEditSave = async (event) => {
-  let { newData, index } = event
-  labWorks.value[index] = newData
-
-  const response = await fetch('http://localhost:8080/lab1/api/labwork', {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(newData),
-  })
-  const data = await response.json()
-
-  bakeToast(data.string, response.ok)
-}
 
 const columns = ref([
   { field: 'id', header: 'ID', editable: false },
@@ -55,6 +84,28 @@ const columns = ref([
   },
 ])
 
+const onRowEditSave = async (event) => {
+  let { newData, index } = event
+  if (validateTableEditing(newData)) {
+    const response = await fetch('http://localhost:8080/lab1/api/labwork', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newData),
+    })
+    const data = await response.json()
+
+    bakeToast(data.string, response.ok)
+
+    if (response.ok) {
+      labWorks.value[index] = newData
+    }
+  } else {
+    bakeToast('Update failed: field constraints violated.', false)
+  }
+}
+
 // CreateForm toggle
 
 const isCreateDialogVisible = ref(false)
@@ -68,17 +119,67 @@ function toggleCreateForm() {
 const socket = new WebSocket('ws://localhost:8080/lab1/ws')
 
 socket.onopen = () => {
-  refreshData()
+  refreshLabWorks()
+  refreshCoordinates()
+  refreshDisciplines()
+  refreshPeople()
+  refreshLocations()
 }
 
-socket.onmessage = () => {
-  setTimeout(() => refreshData(), 200)
+socket.onmessage = (event) => {
+  setTimeout(() => {
+    const data = JSON.parse(event.data)
+    switch (data.type) {
+      case 'LABWORK':
+        refreshLabWorks()
+        console.log(labWorks.value)
+        break
+      case 'COORDINATES':
+        refreshCoordinates()
+        break
+      case 'DISCIPLINE':
+        refreshDisciplines()
+        break
+      case 'PERSON':
+        refreshPeople()
+        break
+      case 'LOCATION':
+        refreshLocations()
+        break
+      default:
+        break
+    }
+  }, 500)
 }
 
-async function refreshData() {
+async function refreshLabWorks() {
   const response = await fetch('http://localhost:8080/lab1/api/labwork')
   const data = await response.json()
   labWorks.value = data
+}
+
+async function refreshCoordinates() {
+  const response = await fetch('http://localhost:8080/lab1/api/coordinates')
+  const data = await response.json()
+  coordinates.value = data
+}
+
+async function refreshDisciplines() {
+  const response = await fetch('http://localhost:8080/lab1/api/discipline')
+  const data = await response.json()
+  disciplines.value = data
+}
+
+async function refreshPeople() {
+  const response = await fetch('http://localhost:8080/lab1/api/person')
+  const data = await response.json()
+  people.value = data
+}
+
+async function refreshLocations() {
+  const response = await fetch('http://localhost:8080/lab1/api/location')
+  const data = await response.json()
+  locations.value = data
 }
 </script>
 
@@ -86,7 +187,7 @@ async function refreshData() {
   <div id="bgPanel">
     <div id="blurPanel">
       <div id="toolbarPanel">
-        <FunctionToolbar @create-entry="toggleCreateForm" />
+        <FunctionToolbar @create-entry="toggleCreateForm" ref="functionToolbarRef" />
       </div>
       <div id="tablePanel">
         <DataTable
@@ -97,7 +198,7 @@ async function refreshData() {
           removable-sort
           v-model:filters="filters"
           filter-display="menu"
-          selection-mode="single"
+          selection-mode="radiobutton"
           v-model:selection="selectedLabWork"
           edit-mode="row"
           v-model:editing-rows="editingRows"
@@ -105,7 +206,13 @@ async function refreshData() {
         >
           <template #empty>No entries found. Create one!</template>
           <Column selection-mode="single"></Column>
-          <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header">
+          <Column
+            v-for="col in columns"
+            :key="col.field"
+            :field="col.field"
+            :header="col.header"
+            sortable
+          >
             <template #editor="{ data, field }" v-if="col.editable">
               <template v-if="field === 'name'">
                 <InputText v-model="data[field]" variant="filled"></InputText>
@@ -125,6 +232,19 @@ async function refreshData() {
             </template>
           </Column>
           <Column :row-editor="true"></Column>
+          <Column>
+            <template #body="slotProps">
+              <div>
+                <Button
+                  icon="pi pi-trash"
+                  size="small"
+                  class="delete-button"
+                  rounded
+                  @click="deleteRow(slotProps.data.id)"
+                ></Button>
+              </div>
+            </template>
+          </Column>
         </DataTable>
       </div>
       <div id="bottomPanel">
@@ -136,7 +256,13 @@ async function refreshData() {
         modal
         header="Create a new lab work entry"
       >
-        <CreateForm />
+        <CreateForm
+          :coordinates="coordinates"
+          :disciplines="disciplines"
+          :people="people"
+          :locations="locations"
+          @close-form="toggleCreateForm"
+        />
       </Dialog>
     </div>
   </div>
@@ -208,5 +334,23 @@ async function refreshData() {
 :deep(#dataTable .p-datatable-tbody > tr),
 :deep(.p-paginator) {
   background-color: rgba(0, 0, 0, 0.35);
+}
+
+.delete-button {
+  background: transparent !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  width: 2rem;
+  height: 2rem;
+}
+
+.delete-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.delete-button:active {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: rgba(255, 255, 255, 1) !important;
 }
 </style>

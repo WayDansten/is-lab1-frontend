@@ -14,10 +14,12 @@ const { bakeToast } = useToastNotifier()
 const deleteByIdValue = ref()
 const deleteByAuthorValue = ref()
 const countByAveragePointValue = ref()
+const getByDescriptionValue = ref()
 const lowerDifficultyIdValue = ref()
 const lowerDifficultyStepsValue = ref()
 
 const countByAveragePointPop = ref()
+const getByDescriptionPop = ref()
 const lowerDifficultyPop = ref()
 const deleteByIdPop = ref()
 const deleteByAuthorPop = ref()
@@ -26,6 +28,10 @@ const deleteByAuthorPop = ref()
 
 const toggleCountByAveragePoint = (event) => {
   countByAveragePointPop.value.toggle(event)
+}
+
+const toggleGetByDescription = (event) => {
+  getByDescriptionPop.value.toggle(event)
 }
 
 const toggleLowerDifficulty = (event) => {
@@ -42,24 +48,27 @@ const toggleDeleteByAuthor = (event) => {
 
 // Request fetching functions
 
-async function deleteById() {
-  if (deleteByIdValue.value === undefined) {
+const deleteById = async (id) => {
+  if (id === undefined || id === null) {
     bakeToast('"LabWork ID" field is empty', false)
   } else {
-    const response = await fetch(
-      `http://localhost:8080/lab1/api/labwork/${deleteByIdValue.value}`,
-      {
-        method: 'DELETE',
-      },
-    )
+    const response = await fetch(`http://localhost:8080/lab1/api/labwork/${id}`, {
+      method: 'DELETE',
+    })
     const data = await response.json()
 
     bakeToast(data.string, response.ok)
   }
 }
 
+defineExpose({ deleteById })
+
 async function deleteByAuthor() {
-  if (deleteByAuthorValue.value === undefined) {
+  if (
+    deleteByAuthorValue.value === undefined ||
+    deleteByAuthorValue.value === null ||
+    deleteByAuthorValue.value === ''
+  ) {
     bakeToast('"Author name" field is empty', false)
   } else {
     const response = await fetch('http://localhost:8080/lab1/api/labwork/author', {
@@ -76,11 +85,23 @@ async function deleteByAuthor() {
 }
 
 async function countByAveragePoint() {
-  if (countByAveragePointValue.value === undefined) {
+  if (countByAveragePointValue.value === undefined || countByAveragePointValue.value === null) {
     bakeToast('"Average point value" field is empty', false)
   } else {
     const params = new URLSearchParams({ averagePoint: countByAveragePointValue.value })
     const response = await fetch(`http://localhost:8080/lab1/api/labwork/average_point?${params}`)
+    const data = await response.json()
+
+    bakeToast('Lab works found: ' + data.value, response.ok)
+  }
+}
+
+async function getByDescription() {
+  if (getByDescriptionValue.value === undefined || getByDescriptionValue.value === '') {
+    bakeToast('"Description prefix" field is empty', false)
+  } else {
+    const params = new URLSearchParams({ prefix: getByDescriptionValue.value })
+    const response = await fetch(`http://localhost:8080/lab1/api/labwork/description?${params}`)
     const data = await response.json()
 
     bakeToast(data.string, response.ok)
@@ -88,22 +109,25 @@ async function countByAveragePoint() {
 }
 
 async function lowerDifficulty() {
-  if (lowerDifficultyIdValue.value === undefined) {
+  if (lowerDifficultyIdValue.value === undefined || lowerDifficultyIdValue.value === null) {
     bakeToast('"LabWork ID" field is empty', false)
-  } else if (lowerDifficultyStepsValue.value === undefined) {
+  } else if (
+    lowerDifficultyStepsValue.value === undefined ||
+    lowerDifficultyStepsValue.value === null
+  ) {
     bakeToast('"Difficulty" field is empty', false)
   } else {
-    const response = await fetch(
-      `http://localhost:8080/lab1/api/labwork/${lowerDifficultyIdValue.value}`,
-      {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ difficulty: lowerDifficultyStepsValue.value }),
+    const response = await fetch(`http://localhost:8080/lab1/api/labwork/difficulty`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
-    const data = response.json()
+      body: JSON.stringify({
+        id: lowerDifficultyIdValue.value,
+        steps: lowerDifficultyStepsValue.value,
+      }),
+    })
+    const data = await response.json()
 
     bakeToast(data.string, response.ok)
   }
@@ -141,6 +165,23 @@ async function lowerDifficulty() {
       </Popover>
 
       <Button
+        label="Get by description"
+        size="small"
+        severity="warn"
+        @click="toggleGetByDescription"
+      ></Button>
+      <Popover ref="getByDescriptionPop">
+        <InputGroup>
+          <InputText
+            v-model="getByDescriptionValue"
+            variant="filled"
+            placeholder="Description prefix"
+          ></InputText>
+          <Button label="Submit" @click="getByDescription"></Button>
+        </InputGroup>
+      </Popover>
+
+      <Button
         label="Lower the Difficulty"
         size="small"
         severity="warn"
@@ -153,7 +194,12 @@ async function lowerDifficulty() {
             variant="filled"
             placeholder="Lab work ID"
           ></InputNumber>
-          <InputNumber v-model="lowerDifficulty" placeholder="Steps"></InputNumber>
+          <InputNumber
+            v-model="lowerDifficultyStepsValue"
+            placeholder="Steps"
+            :min="1"
+            :max="3"
+          ></InputNumber>
           <Button label="Submit" @click="lowerDifficulty"></Button> </InputGroup
       ></Popover>
 
@@ -165,7 +211,7 @@ async function lowerDifficulty() {
             variant="filled"
             placeholder="Lab work ID"
           ></InputNumber>
-          <Button label="Submit" @click="deleteById"></Button> </InputGroup
+          <Button label="Submit" @click="deleteById(deleteByIdValue)"></Button> </InputGroup
       ></Popover>
 
       <Button
