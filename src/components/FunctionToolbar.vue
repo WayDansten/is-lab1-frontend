@@ -193,10 +193,12 @@ async function lowerDifficulty() {
             v-model="lowerDifficultyIdValue"
             variant="filled"
             placeholder="Lab work ID"
+            :use-grouping="false"
           ></InputNumber>
           <InputNumber
             v-model="lowerDifficultyStepsValue"
             placeholder="Steps"
+            :use-grouping="false"
             :min="1"
             :max="3"
           ></InputNumber>
@@ -210,6 +212,7 @@ async function lowerDifficulty() {
             v-model="deleteByIdValue"
             variant="filled"
             placeholder="Lab work ID"
+            :use-grouping="false"
           ></InputNumber>
           <Button label="Submit" @click="deleteById(deleteByIdValue)"></Button> </InputGroup
       ></Popover>

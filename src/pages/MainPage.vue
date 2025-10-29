@@ -100,6 +100,7 @@ const onRowEditSave = async (event) => {
 
     if (response.ok) {
       labWorks.value[index] = newData
+      selectedLabWork.value = undefined
     }
   } else {
     bakeToast('Update failed: field constraints violated.', false)
@@ -127,29 +128,27 @@ socket.onopen = () => {
 }
 
 socket.onmessage = (event) => {
-  setTimeout(() => {
-    const data = JSON.parse(event.data)
-    switch (data.type) {
-      case 'LABWORK':
-        refreshLabWorks()
-        console.log(labWorks.value)
-        break
-      case 'COORDINATES':
-        refreshCoordinates()
-        break
-      case 'DISCIPLINE':
-        refreshDisciplines()
-        break
-      case 'PERSON':
-        refreshPeople()
-        break
-      case 'LOCATION':
-        refreshLocations()
-        break
-      default:
-        break
-    }
-  }, 500)
+  const data = JSON.parse(event.data)
+  switch (data.type) {
+    case 'LABWORK':
+      refreshLabWorks()
+      console.log(labWorks.value)
+      break
+    case 'COORDINATES':
+      refreshCoordinates()
+      break
+    case 'DISCIPLINE':
+      refreshDisciplines()
+      break
+    case 'PERSON':
+      refreshPeople()
+      break
+    case 'LOCATION':
+      refreshLocations()
+      break
+    default:
+      break
+  }
 }
 
 async function refreshLabWorks() {
